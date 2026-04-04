@@ -2234,7 +2234,8 @@ If SAN must be carried in the request itself, PowerShell + certreq is usually th
 
     lastDownloads = buildDownloads(data);
     syncOutputTabs();
-    showTab("tab-output");
+    showOutputTabExplicitly();
+    byId("tab-output").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function getActiveOutputArea(){
