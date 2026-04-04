@@ -2322,20 +2322,22 @@ MIICMDCCAbUCAQAwgc4xCzAJBgNVBAYTAk1ZMSYwJAYDVQQIDB1XaWxheWFoIFBlcnNla3V0dWFuIFB1
   function renderPolicySection(checks){
     const hasFail = checks.some(c => c.status === 'bad');
     const hasWarn = checks.some(c => c.status === 'warn');
-    const allPassed = checks.every(c => c.status === 'ok');
 
     let panelClass = 'ok';
     let statusTitle = 'CSR status: PASSED';
     let statusDesc = 'All CSR checks passed. See individual checks below for details.';
+    let statusIcon = '✔';
 
     if (hasFail) {
       panelClass = 'bad';
       statusTitle = 'CSR status: FAILED';
       statusDesc = 'CSR failed critical checks. Fix issues before submission.';
+      statusIcon = '✖';
     } else if (hasWarn) {
       panelClass = 'warn';
       statusTitle = 'CSR status: WARNING';
       statusDesc = 'CSR has warnings. Review details below before proceeding.';
+      statusIcon = '⚠';
     }
 
     const rows = checks.map(c => `
@@ -2357,9 +2359,9 @@ MIICMDCCAbUCAQAwgc4xCzAJBgNVBAYTAk1ZMSYwJAYDVQQIDB1XaWxheWFoIFBlcnNla3V0dWFuIFB1
           <span>−</span>
         </button>
         <div class="decoder-section-body">
-          <div class="panel ${panelClass}" style="margin:0 0 12px 0;">
-            <strong>${statusTitle}</strong>
-            ${statusDesc}
+          <div class="panel ${panelClass}" style="margin:0 0 12px 0; padding:18px 18px 16px 18px;">
+            <div class="csr-status-strong"><span>${statusIcon}</span><span>${statusTitle}</span></div>
+            <div class="csr-status-desc-tight">${statusDesc}</div>
           </div>
           <table class="mini-table decoder-policy-table">
             <thead>
