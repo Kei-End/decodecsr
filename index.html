@@ -1593,6 +1593,11 @@
     byId(id).style.display = visible ? "" : "none";
   }
 
+  function isFieldVisible(id){
+    const el = byId(id);
+    return !!el && el.style.display !== "none";
+  }
+
   function onPlatformChange(){
     const platform = byId("platform").value;
     fillSelect(byId("osName"), OS_OPTIONS[platform]);
@@ -1913,21 +1918,25 @@ If SAN must be carried in the request itself, PowerShell + certreq is usually th
     if (data.sans.length === 0) add("SAN", "None", "At least one DNS name", "Fail", "SAN is missing. Add at least one DNS name to reduce hostname validation issues.");
     else add("SAN", data.sans.join(", "), "At least one DNS name", "OK", "");
 
-    if (data.opensslVersion) {
-      const c = compareVersions(data.opensslVersion, KB.baselines.opensslMin);
-      if (c === null) add("OpenSSL", data.opensslVersion, `>= ${KB.baselines.opensslMin}`, "Warning", "OpenSSL version could not be parsed clearly.");
-      else if (c < 0) add("OpenSSL", data.opensslVersion, `>= ${KB.baselines.opensslMin}`, "Fail", `OpenSSL appears below ${KB.baselines.opensslMin}.`);
-      else add("OpenSSL", data.opensslVersion, `>= ${KB.baselines.opensslMin}`, "OK", "");
-    } else add("OpenSSL", "Not provided", `>= ${KB.baselines.opensslMin}`, "Warning", "OpenSSL version not provided.");
+    if (isFieldVisible("field_opensslVersion")) {
+      if (data.opensslVersion) {
+        const c = compareVersions(data.opensslVersion, KB.baselines.opensslMin);
+        if (c === null) add("OpenSSL", data.opensslVersion, `>= ${KB.baselines.opensslMin}`, "Warning", "OpenSSL version could not be parsed clearly.");
+        else if (c < 0) add("OpenSSL", data.opensslVersion, `>= ${KB.baselines.opensslMin}`, "Fail", `OpenSSL appears below ${KB.baselines.opensslMin}.`);
+        else add("OpenSSL", data.opensslVersion, `>= ${KB.baselines.opensslMin}`, "OK", "");
+      } else add("OpenSSL", "Not provided", `>= ${KB.baselines.opensslMin}`, "Warning", "OpenSSL version not provided.");
+    }
 
-    if (data.opensshVersion) {
-      const c = compareVersions(data.opensshVersion, KB.baselines.opensshMin);
-      if (c === null) add("OpenSSH", data.opensshVersion, `>= ${KB.baselines.opensshMin}`, "Warning", "OpenSSH version could not be parsed clearly.");
-      else if (c < 0) add("OpenSSH", data.opensshVersion, `>= ${KB.baselines.opensshMin}`, "Fail", `OpenSSH appears below ${KB.baselines.opensshMin}.`);
-      else add("OpenSSH", data.opensshVersion, `>= ${KB.baselines.opensshMin}`, "OK", "");
-    } else {
-      add("OpenSSH", "Not provided", `>= ${KB.baselines.opensshMin}`, "Unknown", "");
-      score -= 3;
+    if (isFieldVisible("field_opensshVersion")) {
+      if (data.opensshVersion) {
+        const c = compareVersions(data.opensshVersion, KB.baselines.opensshMin);
+        if (c === null) add("OpenSSH", data.opensshVersion, `>= ${KB.baselines.opensshMin}`, "Warning", "OpenSSH version could not be parsed clearly.");
+        else if (c < 0) add("OpenSSH", data.opensshVersion, `>= ${KB.baselines.opensshMin}`, "Fail", `OpenSSH appears below ${KB.baselines.opensshMin}.`);
+        else add("OpenSSH", data.opensshVersion, `>= ${KB.baselines.opensshMin}`, "OK", "");
+      } else {
+        add("OpenSSH", "Not provided", `>= ${KB.baselines.opensshMin}`, "Unknown", "");
+        score -= 3;
+      }
     }
 
     if (data.platform === "Windows") {
@@ -1936,7 +1945,7 @@ If SAN must be carried in the request itself, PowerShell + certreq is usually th
       else if (year < KB.baselines.windowsMinYear) add("Windows OS", String(year), `>= ${KB.baselines.windowsMinYear}`, "Fail", `Windows appears below Server ${KB.baselines.windowsMinYear}.`);
       else add("Windows OS", String(year), `>= ${KB.baselines.windowsMinYear}`, "OK", "");
 
-      if (data.server === "IIS") {
+      if (isFieldVisible("field_iisVersion")) {
         if (data.iisVersion) {
           const c = compareVersions(data.iisVersion, KB.baselines.iisMinMajor);
           if (c === null) add("IIS", data.iisVersion, `>= ${KB.baselines.iisMinMajor}`, "Warning", "IIS version could not be parsed clearly.");
@@ -1953,7 +1962,7 @@ If SAN must be carried in the request itself, PowerShell + certreq is usually th
       else add("CentOS", String(major), `>= ${KB.baselines.linuxCentOSMin}`, "OK", "");
     }
 
-    if (data.server === "Apache" || data.server === "XAMPP") {
+    if (isFieldVisible("field_apacheVersion")) {
       if (data.apacheVersion) {
         const c = compareVersions(data.apacheVersion, KB.baselines.apacheMin);
         if (c === null) add("Apache", data.apacheVersion, `>= ${KB.baselines.apacheMin}`, "Warning", "Apache version could not be parsed clearly.");
@@ -1962,14 +1971,16 @@ If SAN must be carried in the request itself, PowerShell + certreq is usually th
       } else add("Apache", "Not provided", `>= ${KB.baselines.apacheMin}`, "Warning", "Apache version not provided.");
     }
 
-    if (data.server === "XAMPP") {
+    if (isFieldVisible("field_xamppVersion")) {
       if (data.xamppVersion) {
         const c = compareVersions(data.xamppVersion, KB.baselines.xamppMin);
         if (c === null) add("XAMPP", data.xamppVersion, `>= ${KB.baselines.xamppMin}`, "Warning", "XAMPP version could not be parsed clearly.");
         else if (c < 0) add("XAMPP", data.xamppVersion, `>= ${KB.baselines.xamppMin}`, "Fail", `XAMPP appears below ${KB.baselines.xamppMin}.`);
         else add("XAMPP", data.xamppVersion, `>= ${KB.baselines.xamppMin}`, "OK", "");
       } else add("XAMPP", "Not provided", `>= ${KB.baselines.xamppMin}`, "Warning", "XAMPP version not provided.");
+    }
 
+    if (isFieldVisible("field_phpVersion")) {
       if (data.phpVersion) {
         const c = compareVersions(data.phpVersion, KB.baselines.phpMin);
         if (c === null) add("PHP", data.phpVersion, `>= ${KB.baselines.phpMin}`, "Warning", "PHP version could not be parsed clearly.");
