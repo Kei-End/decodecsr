@@ -1,31 +1,31 @@
-# ECC CSR Assistant + PKI Decoder Hybrid
+# ECC CSR Assistant + CSR Decoder
 
-This project keeps the **ECC CSR Generate Assistant** as the main page and moves the wider **PKI Decoder** into the **Decoder** tab.
+This build keeps the ECC CSR generation assistant as the main page and simplifies the Decoder tab into a local-only CSR decoder.
 
 ## What changed
 
-- The landing workflow is now the CSR generation assistant.
-- The Decoder tab contains:
-  - **PKI Decoder** with **Local Mode** and **Edge Mode**
-  - **SSL Checker** backed by a Cloudflare Pages Function
-- The build remains a **hybrid Cloudflare Pages** project.
+- Removed **SSL Checker**
+- Removed **Edge Mode**
+- Renamed **PKI Decoder** to **CSR Decoder**
+- Decoder now runs **fully in the browser**
+- Fixed ECC CSR key size handling so **P-384** requests display as **384 bits**
+- Added a clearer CSR summary, checks table, and CSR properties panel inspired by the validation view you shared
 
-## Features
+## Main assistant
 
-### Main assistant
 - Environment and stack guidance
 - ECC P-384 CSR input form
-- Linux OpenSSL script output with server-aware deployment notes
+- Linux OpenSSL script output with server-aware notes
 - Windows PowerShell + certreq output with SAN-aware INF generation
 - Windows IIS GUI guidance with provider and binding reminders
 - Readiness summary and post-deployment checklist
 
-### Decoder tab
-- Paste or upload PEM / DER / Base64 input
-- Decode certificates, CSRs, PKCS#7 bundles, CRLs, and CMS objects
-- Local browser decode for privacy-sensitive data
-- Edge decode through `/api/decode`
-- SSL hostname checker through `/api/ssl-check`
+## Decoder tab
+
+- Local browser decoding only
+- PEM and DER CSR upload support
+- CSR summary and checks
+- Subject, key size, key algorithm, signature algorithm, fingerprints, and SAN output
 
 ## Run locally
 
@@ -40,9 +40,3 @@ npm run dev
 npm install
 npm run deploy
 ```
-
-## Notes
-
-- `nodejs_compat` is enabled for the SSL checker Worker path.
-- The assistant is focused on ECC P-384 CSR generation.
-- The broader PKI decoder is available only inside the Decoder tab.

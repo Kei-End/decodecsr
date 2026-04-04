@@ -1,4 +1,3 @@
-name = "ecc-csr-assistant-hybrid"
+name = "ecc-csr-assistant-csr-decoder"
 compatibility_date = "2026-04-04"
 pages_build_output_dir = "."
-compatibility_flags = ["nodejs_compat"]
