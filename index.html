@@ -637,23 +637,24 @@ function onPlatformChange(){
 function setHidden(id, hidden){ byId(id).hidden = hidden; }
 
 function onServerChange(){
-  const platform = byId('platform').value;
-  const server = byId('server').value;
-  const showOpenSSL = platform === 'Linux' || ['Apache','Nginx','XAMPP'].includes(server);
-  const showOpenSSH = platform === 'Linux';
+    const platform = byId("platform").value;
+    const server = byId("server").value;
 
-  setHidden('field_iisVersion', !(platform === 'Windows' && server === 'IIS'));
-  setHidden('field_iisMethod', !(platform === 'Windows' && server === 'IIS'));
-  setHidden('field_nginxVersion', server !== 'Nginx');
-  setHidden('field_apacheVersion', !(server === 'Apache' || server === 'XAMPP'));
-  setHidden('field_xamppVersion', server !== 'XAMPP');
-  setHidden('field_phpVersion', server !== 'XAMPP');
-  setHidden('field_opensslVersion', !showOpenSSL);
-  setHidden('field_opensshVersion', !showOpenSSH);
-  syncOutputTabs();
-}
+    show("field_iisVersion", platform === "Windows" && server === "IIS");
+    show("field_iisMethod", platform === "Windows" && server === "IIS");
+    show("field_nginxVersion", platform === "Linux" && server === "Nginx");
+    show("field_apacheVersion", platform === "Linux" && server === "Apache");
+    show("field_xamppVersion", platform === "Windows" && server === "XAMPP");
+    show("field_phpVersion", platform === "Windows" && server === "XAMPP");
 
-function syncOutputTabs(){
+    // Keep library fields aligned to the stack most likely to need them.
+    show("field_opensslVersion", platform === "Linux" || (platform === "Windows" && server === "XAMPP"));
+    show("field_opensshVersion", platform === "Linux");
+
+    syncOutputTabs();
+  }
+
+  function syncOutputTabs(){
   const platform = byId('platform').value;
   const server = byId('server').value;
   const iisMethod = byId('iisMethod').value;
