@@ -1,5 +1,5 @@
 {
-  "name": "ecc-csr-assistant-csr-decoder",
+  "name": "ecc-csr-assistant-cloudflare-ui",
   "private": true,
   "version": "0.1.0",
   "type": "module",

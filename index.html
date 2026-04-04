@@ -8,63 +8,225 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/11.1.0/jsrsasign-all-min.js"></script>
   <style>
     :root{
-      --bg:#f4f7fb; --card:#ffffff; --line:#d9e2ec; --text:#0f172a; --muted:#64748b;
-      --primary:#0f766e; --primary-dark:#115e59; --secondary:#334155;
-      --ok:#166534; --ok-bg:#ecfdf5; --warn:#9a3412; --warn-bg:#fff7ed; --bad:#991b1b; --bad-bg:#fef2f2; --info:#2563eb; --info-bg:#eff6ff;
-      --soft:#f8fafc; --pill:#e2e8f0;
-      --decoder-bg:#0b1220; --decoder-panel:#111a2e; --decoder-panel-2:#16213a; --decoder-line:#263552; --decoder-text:#f8fafc; --decoder-muted:#94a3b8; --decoder-primary:#3b82f6; --decoder-primary-2:#2563eb;
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --line:#d9e2ec;
+      --text:#0f172a;
+      --muted:#64748b;
+      --primary:#0f766e;
+      --primary-dark:#115e59;
+      --secondary:#334155;
+      --ok:#16a34a;
+      --ok-bg:#ecfdf5;
+      --warn:#ea580c;
+      --warn-bg:#fff7ed;
+      --bad:#dc2626;
+      --bad-bg:#fef2f2;
+      --info:#2563eb;
+      --info-bg:#eff6ff;
+      --soft:#f8fafc;
+      --pill:#e2e8f0;
+
+      --decoder-bg:#0b1220;
+      --decoder-panel:#111a2e;
+      --decoder-panel-2:#16213a;
+      --decoder-line:#263552;
+      --decoder-text:#f8fafc;
+      --decoder-muted:#94a3b8;
+      --decoder-primary:#3b82f6;
+      --decoder-primary-2:#2563eb;
+      --decoder-ok:#16a34a;
+      --decoder-ok-bg:#052e16;
+      --decoder-warn:#f59e0b;
+      --decoder-warn-bg:#3b2a07;
+      --decoder-bad:#ef4444;
+      --decoder-bad-bg:#3b0a0a;
+      --decoder-chip:#1e293b;
     }
+
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
     .app{max-width:1380px;margin:0 auto;padding:24px}
     .hero{background:linear-gradient(135deg,#0f766e,#0b5f59);color:#fff;border-radius:18px;padding:24px;box-shadow:0 16px 36px rgba(15,118,110,.18);margin-bottom:18px}
-    .hero h1{margin:0 0 6px 0;font-size:30px}.hero p{margin:0;font-size:14px;opacity:.95;max-width:980px}
-    .hero-grid{margin-top:18px;display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.stat-card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:18px;backdrop-filter:blur(6px)}
-    .stat-title{font-size:13px;opacity:.9;margin-bottom:6px}.score-number{font-size:42px;font-weight:700;margin:0}.score-sub{font-size:13px;opacity:.9;margin-top:4px}
-    .progress{width:100%;height:12px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.2);margin-top:12px}.progress-bar{height:100%;width:0;background:#fff;transition:width .3s ease}
-    .pill-row,.actions,.decoder-toolbar,.chips{display:flex;flex-wrap:wrap;gap:8px}.pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:12px;border:1px solid rgba(255,255,255,.18)}
-    .layout{display:grid;grid-template-columns:1fr 340px;gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(15,23,42,.05)}
-    .tabs,.subtabs{display:flex;gap:8px;flex-wrap:wrap}.tabs{padding:16px 16px 0}.subtabs{margin:12px 0 14px}
-    .tab-btn,.subtab-btn,.chip{border:none;background:var(--pill);color:var(--text);font-weight:700;border-radius:12px;padding:10px 14px;cursor:pointer}.tab-btn.active,.subtab-btn.active,.chip.active{background:var(--primary);color:#fff}
-    .tab-panel,.subtab-panel{display:none}.tab-panel.active{display:block;padding:18px 22px 22px}.subtab-panel.active{display:block}
-    .section-title{margin:0 0 12px;font-size:18px;font-weight:700}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.full{grid-column:1 / -1}.field{display:flex;flex-direction:column}
-    label{margin-bottom:6px;font-size:14px;font-weight:700} input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;color:var(--text);font-size:14px}
-    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,118,110,.12)} textarea{min-height:220px;resize:vertical;white-space:pre-wrap;font-family:Consolas,"Courier New",monospace}
-    .hint,.small-note,.muted{font-size:12px;color:var(--muted)} .inline-help{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--info-bg);border-left:5px solid var(--info);font-size:13px}
-    button.primary,button.secondary,button.light{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer} button.primary{background:var(--primary);color:#fff} button.primary:hover{background:var(--primary-dark)} button.secondary{background:var(--secondary);color:#fff} button.light{background:#e2e8f0;color:#0f172a}
-    .panel{border-radius:14px;padding:14px 16px;border-left:6px solid;margin-top:12px}.panel.info{background:var(--info-bg);border-left-color:var(--info)}.panel.ok{background:var(--ok-bg);border-left-color:var(--ok)}.panel.warn{background:var(--warn-bg);border-left-color:#fdba74}.panel.bad{background:var(--bad-bg);border-left-color:#fca5a5}
-    .summary-box{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.mini{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}.mini .n{font-size:24px;font-weight:700}.mini .t{color:var(--muted);font-size:12px;margin-top:4px}
-    .readiness-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:18px;margin-top:14px;box-shadow:0 6px 20px rgba(15,23,42,.04)} .readiness-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
-    .readiness-box{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--soft)} .readiness-box h4{margin:0 0 8px;font-size:14px} .readiness-box ul{margin:0 0 0 18px;padding:0}.readiness-box li{margin:4px 0}
-    .drawer{position:sticky;top:18px;align-self:start}.accordion{display:grid;gap:10px}.acc-item{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.acc-head{width:100%;border:none;background:#fff;padding:14px 16px;text-align:left;font-weight:700;display:flex;justify-content:space-between;cursor:pointer}.acc-body{display:none;padding:0 16px 14px;color:#334155;font-size:14px}.acc-item.open .acc-body{display:block}
-    .collapsible{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}.collapsible-head{width:100%;border:none;background:#fff;padding:14px 16px;text-align:left;font-weight:700;display:flex;justify-content:space-between;cursor:pointer}.collapsible-body{display:none;padding:0 16px 16px}.collapsible.open .collapsible-body{display:block}
-    .flash{position:fixed;right:20px;bottom:20px;z-index:9999;max-width:360px;border:1px solid var(--line);box-shadow:0 8px 20px rgba(15,23,42,.18);background:#fff;color:var(--text);border-radius:14px;padding:12px 14px;display:none}.flash.ok{border-color:#86efac;background:var(--ok-bg)}.flash.warn{border-color:#fdba74;background:var(--warn-bg)}.flash.bad{border-color:#fca5a5;background:var(--bad-bg)}
+    .hero h1{margin:0 0 6px 0;font-size:30px}
+    .hero p{margin:0;font-size:14px;opacity:.95;max-width:980px}
+    .permanent-reminder{margin-top:14px;padding:10px 12px;border-radius:12px;background:#fff1f2;border:1px solid #fecdd3;color:#991b1b;font-size:13px;font-weight:700}
+    .hero-grid{margin-top:18px;display:grid;grid-template-columns:1.2fr .8fr;gap:16px;align-items:stretch}
+    .stat-card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:18px;backdrop-filter:blur(6px)}
+    .stat-title{font-size:13px;opacity:.9;margin-bottom:6px}
+    .score-number{font-size:42px;font-weight:700;margin:0}
+    .score-sub{font-size:13px;opacity:.9;margin-top:4px}
+    .progress{width:100%;height:12px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.2);margin-top:12px}
+    .progress-bar{height:100%;width:0%;background:#fff;transition:width .3s ease}
+    .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:12px;border:1px solid rgba(255,255,255,.18)}
+    .layout{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(15,23,42,.05)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:16px 16px 0 16px}
+    .tab-btn,.subtab-btn{border:none;background:var(--pill);color:var(--text);font-weight:700;border-radius:12px;padding:10px 14px;cursor:pointer}
+    .tab-btn.active,.subtab-btn.active{background:var(--primary);color:#fff}
+    .tab-panel,.subtab-panel{display:none}
+    .tab-panel.active{display:block;padding:18px 22px 22px 22px}
+    .subtab-panel.active{display:block}
+    .subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 14px 0}
+    .section-title{margin:0 0 12px 0;font-size:18px;font-weight:700}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .full{grid-column:1 / -1}
+    .field{display:flex;flex-direction:column}
+    label{margin-bottom:6px;font-size:14px;font-weight:700}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;color:var(--text);font-size:14px}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+    textarea{min-height:220px;resize:vertical;white-space:pre-wrap;font-family:Consolas,"Courier New",monospace}
+    .hint{margin-top:6px;font-size:12px;color:var(--muted)}
+    .inline-help{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--info-bg);border-left:5px solid var(--info);font-size:13px}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+    button.primary,button.secondary,button.light{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+    button.primary{background:var(--primary);color:#fff}
+    button.primary:hover{background:var(--primary-dark)}
+    button.secondary{background:var(--secondary);color:#fff}
+    button.secondary:hover{background:#1f2937}
+    button.light{background:#e2e8f0;color:#0f172a}
+    button.light:hover{background:#cbd5e1}
+    .panel{border-radius:14px;padding:14px 16px;border-left:6px solid;margin-top:12px}
+    .panel strong{display:block;margin-bottom:6px}
+    .panel.info{background:var(--info-bg);border-left-color:var(--info)}
+    .panel.ok{background:var(--ok-bg);border-left-color:var(--ok)}
+    .panel.warn{background:var(--warn-bg);border-left-color:var(--warn)}
+    .panel.bad{background:var(--bad-bg);border-left-color:var(--bad)}
+    .summary-box{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .mini{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+    .mini .n{font-size:24px;font-weight:700}
+    .mini .t{color:var(--muted);font-size:12px;margin-top:4px}
+    .mini.pass{background:var(--ok-bg);border-color:#86efac}.mini.pass .n{color:#166534}
+    .mini.warn{background:var(--warn-bg);border-color:#fdba74}.mini.warn .n{color:#9a3412}
+    .mini.fail{background:var(--bad-bg);border-color:#fca5a5}.mini.fail .n{color:#991b1b}
+    .status-grid{display:grid;gap:10px}
+    .status-item{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+    .status-item.pass{background:var(--ok-bg);border-color:#86efac}
+    .status-item.warn{background:var(--warn-bg);border-color:#fdba74}
+    .status-item.fail{background:var(--bad-bg);border-color:#fca5a5}
+    .status-item.unknown{background:#f8fafc;border-color:#cbd5e1}
+    .status-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+    .badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}
+    .badge.ok{background:#dcfce7;color:#166534}
+    .badge.warn{background:#ffedd5;color:#9a3412}
+    .badge.bad{background:#fee2e2;color:#991b1b}
+    .badge.unk{background:#e2e8f0;color:#334155}
+    .status-rule{color:var(--muted);font-size:12px}
+    .output-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+    .readiness-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:18px;margin-top:14px;box-shadow:0 6px 20px rgba(15,23,42,.04)}
+    .readiness-top{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
+    .readiness-title{font-size:20px;font-weight:700;margin:0 0 6px 0}
+    .readiness-score{text-align:right}.readiness-score .big{font-size:32px;font-weight:700;margin:0}
+    .readiness-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .readiness-box{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--soft)}
+    .readiness-box h4{margin:0 0 8px 0;font-size:14px}
+    .readiness-box ul{margin:0 0 0 18px;padding:0}.readiness-box li{margin:4px 0}
+    .drawer{position:sticky;top:18px;align-self:start}.drawer h3{margin:0 0 10px 0;font-size:18px}
+    .accordion{display:grid;gap:10px}
+    .acc-item{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+    .acc-head{width:100%;border:none;background:#fff;padding:14px 16px;text-align:left;font-weight:700;display:flex;justify-content:space-between;gap:12px;cursor:pointer}
+    .acc-body{display:none;padding:0 16px 14px 16px;color:#334155;font-size:14px}
+    .acc-item.open .acc-body{display:block}
+    .collapsible{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}
+    .collapsible-head{width:100%;border:none;background:#fff;padding:14px 16px;text-align:left;font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .collapsible-body{display:none;padding:0 16px 16px 16px}.collapsible.open .collapsible-body{display:block}
+    .reference{margin-top:14px;font-size:12px;color:var(--muted)}
+    .mini-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+    .mini-table th,.mini-table td{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+    .mini-table th{background:var(--soft)}
 
     .decoder-shell{background:linear-gradient(180deg,var(--decoder-bg) 0%, #08101d 100%);color:var(--decoder-text);border:1px solid var(--decoder-line);border-radius:20px;padding:20px;box-shadow:0 14px 44px rgba(0,0,0,.22)}
-    .decoder-title{margin:0 0 6px;font-size:28px;color:#fff}.decoder-sub{margin:0 0 16px;color:var(--decoder-muted);font-size:14px}
-    .decoder-input,.decoder-host{width:100%;border:1px solid var(--decoder-line);border-radius:16px;padding:16px;background:#0a1324;color:var(--decoder-text);font-size:14px;font-family:Consolas,"Courier New",monospace;outline:none}.decoder-host{font-family:Arial,Helvetica,sans-serif;padding:12px 14px;border-radius:12px}
-    .decoder-btn{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:14px}.decoder-btn-primary{background:var(--decoder-primary);color:#fff}.decoder-btn-outline{background:transparent;color:#fff;border:1px solid var(--decoder-line)}.decoder-error{border:1px solid #7f1d1d;background:rgba(127,29,29,.25);color:#fecaca;border-radius:14px;padding:12px 14px;display:none;margin-top:14px}
-    .decoder-results,.ssl-results{margin-top:22px;display:grid;gap:16px}.result-card{background:rgba(17,26,46,.9);border:1px solid var(--decoder-line);border-radius:18px;padding:18px;color:#fff}.result-card h3,.result-card h4{margin:0 0 8px}.badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.badge.pass{background:#dcfce7;color:#166534}.badge.fail{background:#fee2e2;color:#991b1b}.badge.warning{background:#fef3c7;color:#92400e}
-    .kv{display:grid;grid-template-columns:220px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.2)} .kv:last-child{border-bottom:0}.mono{font-family:Consolas,"Courier New",monospace;word-break:break-all;font-size:13px}
-    details{border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:12px 14px;background:#0d1628} summary{cursor:pointer;font-weight:700;color:#fff} pre{margin:12px 0 0;padding:14px;overflow:auto;border-radius:16px;background:#08101d;color:#e2e8f0;font-size:12px}
-    .list{padding-left:18px;margin:0}.csr-table{width:100%;border-collapse:collapse}.csr-table th,.csr-table td{padding:12px 10px;border-bottom:1px solid rgba(148,163,184,.2);text-align:left;vertical-align:top}.csr-table th{width:250px;color:#fff}.csr-summary{background:#f8fffb;border:1px solid #86efac;color:#166534;border-radius:14px;padding:16px}.csr-link{color:#93c5fd;text-decoration:none}.csr-link:hover{text-decoration:underline}
-    @media (max-width:1080px){.layout{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr}.drawer{position:static}} @media (max-width:800px){.grid,.readiness-grid,.summary-box,.ssl-grid,.kv{grid-template-columns:1fr}}
+    .decoder-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .decoder-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:#fff}
+    .decoder-brand-badge{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .decoder-title{margin:0 0 6px 0;font-size:30px;color:#fff}
+    .decoder-sub{margin:0 0 16px 0;color:var(--decoder-muted);font-size:14px}
+    .decoder-input-panel{display:grid;gap:14px}
+    .decoder-textarea{width:100%;min-height:240px;resize:vertical;border:1px solid var(--decoder-line);border-radius:16px;padding:16px;background:#0a1324;color:var(--decoder-text);font-size:14px;font-family:Consolas,"Courier New",monospace;outline:none}
+    .decoder-textarea:focus{border-color:var(--decoder-primary);box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+    .decoder-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .decoder-btn{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:14px}
+    .decoder-btn-primary{background:var(--decoder-primary);color:#fff}.decoder-btn-primary:hover{background:var(--decoder-primary-2)}
+    .decoder-btn-outline{background:transparent;color:#fff;border:1px solid var(--decoder-line)}
+    .decoder-btn-outline:hover{background:rgba(255,255,255,.04)}
+    .decoder-btn-danger{background:#2b1220;color:#fecaca;border:1px solid #4b1d2d}
+    .decoder-file-input{display:none}
+    .decoder-error,.flash{margin-top:14px;border-radius:14px;padding:12px 14px;display:none}
+    .decoder-error{border:1px solid #7f1d1d;background:rgba(127,29,29,.25);color:#fecaca}
+    .flash{position:fixed;right:20px;bottom:20px;z-index:9999;max-width:360px;border:1px solid var(--line);box-shadow:0 8px 20px rgba(15,23,42,.18);background:#fff;color:var(--text)}
+    .flash.ok{border-color:#86efac;background:var(--ok-bg)}
+    .flash.warn{border-color:#fdba74;background:var(--warn-bg)}
+    .flash.bad{border-color:#fca5a5;background:var(--bad-bg)}
+    .decoder-results{margin-top:22px;display:none}
+    .decoder-card{background:rgba(17,26,46,.9);border:1px solid var(--decoder-line);border-radius:18px;padding:18px;color:#fff}
+    .decoder-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;align-items:center}
+    .decoder-chip{background:var(--decoder-chip);border:1px solid var(--decoder-line);color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}
+    .decoder-badge{border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px}
+    .decoder-badge-valid{background:var(--decoder-ok-bg);color:#86efac;border-color:#14532d}
+    .decoder-badge-soon{background:var(--decoder-warn-bg);color:#fcd34d;border-color:#854d0e}
+    .decoder-badge-expired{background:var(--decoder-bad-bg);color:#fca5a5;border-color:#7f1d1d}
+    .decoder-section{margin-top:16px;border:1px solid var(--decoder-line);border-radius:16px;overflow:hidden;background:#0d1628}
+    .decoder-section-head{width:100%;border:none;background:#0d1628;color:#fff;text-align:left;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .decoder-section-body{display:block;padding:0 16px 16px 16px}
+    .decoder-section.collapsed .decoder-section-body{display:none}
+    .decoder-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .decoder-kv{border:1px solid var(--decoder-line);background:var(--decoder-panel-2);border-radius:14px;padding:12px}
+    .decoder-kv-label{font-size:12px;color:var(--decoder-muted);margin-bottom:6px;font-weight:700}
+    .decoder-kv-value{font-size:14px;color:#fff;word-break:break-word}
+    .decoder-kv-value code{font-family:Consolas,"Courier New",monospace;font-size:13px;color:#dbeafe}
+    .decoder-value-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .decoder-copy-btn{flex-shrink:0;background:transparent;color:#cbd5e1;border:1px solid var(--decoder-line);border-radius:10px;padding:6px 8px;cursor:pointer;font-size:12px}
+    .decoder-copy-btn:hover{background:rgba(255,255,255,.04)}
+    .decoder-list{margin:0;padding-left:18px}.decoder-list li{margin:4px 0;color:#fff}
+    details.decoder-long{border:1px dashed var(--decoder-line);border-radius:12px;padding:10px;background:#0a1324}
+    details.decoder-long summary{cursor:pointer;color:#cbd5e1;font-weight:700}
+    pre.decoder-raw{white-space:pre-wrap;word-break:break-word;margin:10px 0 0 0;color:#dbeafe;font-size:12px;font-family:Consolas,"Courier New",monospace}
+    .decoder-footer{margin-top:18px;color:var(--decoder-muted);font-size:12px;text-align:center}
+    .small-note{font-size:12px;color:var(--decoder-muted)}
+
+    @media (max-width:1080px){.layout{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr}.drawer{position:static}}
+    @media (max-width:800px){.decoder-kv-grid{grid-template-columns:1fr}}
+    @media (max-width:760px){.grid,.readiness-grid{grid-template-columns:1fr}.summary-box{grid-template-columns:1fr}.readiness-top{grid-template-columns:1fr}.readiness-score{text-align:left}.decoder-title{font-size:28px}}
+    @media print{
+      body{background:#fff}
+      .hero,.drawer,.tabs,.subtabs,.actions,.decoder-toolbar,.flash{display:none !important}
+      .card{box-shadow:none;border:none}
+      .tab-panel{display:none !important;padding:0}
+      .tab-panel.active{display:block !important}
+      .subtab-panel{display:none !important}
+      .subtab-panel.active{display:block !important}
+      .readiness-card{box-shadow:none}
+    }
   </style>
 </head>
 <body>
 <div class="app">
   <div id="flash" class="flash" role="status" aria-live="polite"></div>
+
   <div class="hero">
     <h1>ECC CSR Assistant &amp; CSR Decoder</h1>
-    <p>Generate clean ECC CSR command paths for Windows and Linux first. The Decoder tab now focuses on local CSR inspection, so the main workflow stays centred on request generation and validation.</p>
+    <p>
+      Guided CSR generation for Windows and Linux, built around ECC P-384 and SHA-256, with pre-submission checks for outdated server stacks, clean operator output, and a browser-side ECC CSR decoder.
+    </p>
+
+    <div class="permanent-reminder">
+      Permanent reminder: do not submit CSR content by copying it through UI, email, PDF, or chat applications. Use the original generated file whenever possible.
+    </div>
+
     <div class="hero-grid">
       <div class="stat-card">
         <div class="stat-title">Environment health score</div>
         <div id="scoreNumber" class="score-number">--</div>
         <div id="scoreSub" class="score-sub">Generate a result to assess the environment.</div>
         <div class="progress"><div id="scoreBar" class="progress-bar"></div></div>
-        <div class="pill-row" style="margin-top:10px"><div class="pill">ECC: P-384</div><div class="pill">Hash: SHA-256</div><div class="pill">Cloudflare Pages</div></div>
+        <div class="pill-row">
+          <div class="pill">ECC: P-384</div>
+          <div class="pill">Hash: SHA-256</div>
+          <div class="pill">Scope: ECC CSR only</div>
+        </div>
       </div>
+
       <div class="stat-card">
         <div class="stat-title">Quick posture</div>
         <div class="pill-row" id="quickPills"><div class="pill">No result yet</div></div>
@@ -86,88 +248,235 @@
       <div id="tab-env" class="tab-panel active">
         <h2 class="section-title">Environment and server stack</h2>
         <div class="grid">
-          <div class="field"><label for="platform">Operating system family</label><select id="platform"><option value="Windows">Windows</option><option value="Linux">Linux</option></select></div>
-          <div class="field"><label for="osName">Operating system</label><select id="osName"></select></div>
-          <div class="field"><label for="osVersion">OS version</label><input id="osVersion" placeholder="Examples: 2016, 2019, 2022, 7, 8, 9, 22.04"></div>
-          <div class="field"><label for="server">Web server / stack</label><select id="server"></select></div>
-          <div class="field" id="field_iisVersion" hidden><label for="iisVersion">IIS version</label><input id="iisVersion" placeholder="Examples: 8.0, 8.5, 10.0"></div>
-          <div class="field" id="field_iisMethod" hidden><label for="iisMethod">Windows CSR method</label><select id="iisMethod"><option value="powershell">PowerShell + certreq</option><option value="gui">IIS GUI guidance</option><option value="both">Both</option></select></div>
-          <div class="field" id="field_nginxVersion" hidden><label for="nginxVersion">Nginx version</label><input id="nginxVersion" placeholder="Example: 1.24.0"></div>
-          <div class="field" id="field_apacheVersion" hidden><label for="apacheVersion">Apache version</label><input id="apacheVersion" placeholder="Example: 2.4.54"></div>
-          <div class="field" id="field_xamppVersion" hidden><label for="xamppVersion">XAMPP version</label><input id="xamppVersion" placeholder="Example: 7.4.33"></div>
-          <div class="field" id="field_phpVersion" hidden><label for="phpVersion">PHP version</label><input id="phpVersion" placeholder="Example: 8.1.0"></div>
-          <div class="field"><label for="opensslVersion">OpenSSL version</label><input id="opensslVersion" placeholder="Example: 1.1.1 or 3.0.2"></div>
-          <div class="field"><label for="opensshVersion">OpenSSH version</label><input id="opensshVersion" placeholder="Optional"></div>
-          <div class="full inline-help">The assistant remains the front door. Use it to shape the CSR request and produce the right script path before moving into certificate analysis.</div>
+          <div class="field">
+            <label for="platform">Operating system family</label>
+            <select id="platform"><option value="Windows">Windows</option><option value="Linux">Linux</option></select>
+          </div>
+          <div class="field">
+            <label for="osName">Operating system</label>
+            <select id="osName"></select>
+          </div>
+          <div class="field">
+            <label for="osVersion">OS version</label>
+            <input id="osVersion" placeholder="Examples: 2016, 2019, 2022, 7, 8, 9, 22.04">
+          </div>
+          <div class="field">
+            <label for="server">Web server / stack</label>
+            <select id="server"></select>
+          </div>
+          <div class="field" id="field_iisVersion" hidden>
+            <label for="iisVersion">IIS version</label>
+            <input id="iisVersion" placeholder="Examples: 8.0, 8.5, 10.0">
+          </div>
+          <div class="field" id="field_iisMethod" hidden>
+            <label for="iisMethod">Windows CSR method</label>
+            <select id="iisMethod"><option value="powershell">PowerShell + certreq</option><option value="gui">IIS GUI guidance</option><option value="both">Both</option></select>
+          </div>
+          <div class="field" id="field_nginxVersion" hidden>
+            <label for="nginxVersion">Nginx version</label>
+            <input id="nginxVersion" placeholder="Example: 1.24.0">
+          </div>
+          <div class="field" id="field_apacheVersion" hidden>
+            <label for="apacheVersion">Apache version</label>
+            <input id="apacheVersion" placeholder="Example: 2.4.54">
+          </div>
+          <div class="field" id="field_xamppVersion" hidden>
+            <label for="xamppVersion">XAMPP version</label>
+            <input id="xamppVersion" placeholder="Example: 7.4.33">
+          </div>
+          <div class="field" id="field_phpVersion" hidden>
+            <label for="phpVersion">PHP version</label>
+            <input id="phpVersion" placeholder="Example: 8.1.0">
+          </div>
+          <div class="field">
+            <label for="opensslVersion">OpenSSL version</label>
+            <input id="opensslVersion" placeholder="Example: 1.1.1 or 3.0.2">
+          </div>
+          <div class="field">
+            <label for="opensshVersion">OpenSSH version</label>
+            <input id="opensshVersion" placeholder="Optional">
+          </div>
+          <div class="full inline-help">Only server-specific fields appear when relevant. IIS options stay hidden unless IIS is selected.</div>
         </div>
       </div>
 
       <div id="tab-cert" class="tab-panel">
         <h2 class="section-title">ECC CSR request details</h2>
         <div class="grid">
-          <div class="field"><label for="cn">Common Name (CN)</label><input id="cn" placeholder="example.gov.my"></div>
-          <div class="field"><label for="san">Subject Alternative Names (SAN)</label><input id="san" placeholder="example.gov.my, www.example.gov.my"><div class="hint">Comma-separated DNS names and IP entries. Use prefixes like IP:192.0.2.10 when needed. CN is added automatically if missing.</div></div>
-          <div class="field"><label for="org">Organisation (O)</label><input id="org" placeholder="Agency Name"></div>
-          <div class="field"><label for="ou">Organisational Unit (OU)</label><input id="ou" placeholder="ICT / Security / Operations"></div>
-          <div class="field"><label for="city">Locality (L)</label><input id="city" placeholder="Putrajaya"></div>
-          <div class="field"><label for="state">State / Province (ST)</label><input id="state" placeholder="Wilayah Persekutuan Putrajaya"></div>
-          <div class="field"><label for="country">Country (C)</label><input id="country" maxlength="2" placeholder="MY"></div>
-          <div class="field"><label for="email">Email (optional)</label><input id="email" placeholder="admin@example.gov.my"></div>
+          <div class="field">
+            <label for="cn">Common Name (CN)</label>
+            <input id="cn" placeholder="example.gov.my">
+          </div>
+          <div class="field">
+            <label for="san">Subject Alternative Names (SAN)</label>
+            <input id="san" placeholder="example.gov.my, www.example.gov.my">
+            <div class="hint">Comma-separated DNS names and IP entries. Use prefixes like IP:192.0.2.10 when needed. CN will be added automatically if missing.</div>
+          </div>
+          <div class="field">
+            <label for="org">Organisation (O)</label>
+            <input id="org" placeholder="Agency Name">
+          </div>
+          <div class="field">
+            <label for="ou">Organisational Unit (OU)</label>
+            <input id="ou" placeholder="ICT / Security / Operations">
+          </div>
+          <div class="field">
+            <label for="city">Locality (L)</label>
+            <input id="city" placeholder="Putrajaya">
+          </div>
+          <div class="field">
+            <label for="state">State / Province (ST)</label>
+            <input id="state" placeholder="Wilayah Persekutuan Putrajaya">
+          </div>
+          <div class="field">
+            <label for="country">Country (C)</label>
+            <input id="country" maxlength="2" placeholder="MY">
+          </div>
+          <div class="field">
+            <label for="email">Email (optional)</label>
+            <input id="email" placeholder="admin@example.gov.my">
+          </div>
         </div>
-        <div class="actions" style="margin-top:18px"><button class="primary" id="generateBtn">Generate scripts &amp; checks</button><button class="secondary" id="goOutputBtn">Go to output</button></div>
+        <div class="actions" style="margin-top:18px;">
+          <button class="primary" id="generateBtn">Generate scripts &amp; checks</button>
+          <button class="secondary" id="goOutputBtn">Go to output</button>
+        </div>
       </div>
 
       <div id="tab-output" class="tab-panel">
-        <div class="actions" style="justify-content:space-between;margin-bottom:8px"><h2 class="section-title" style="margin:0">Generated output</h2><div class="actions"><button class="primary" id="regenerateBtn">Regenerate</button><button class="secondary" id="copyActiveBtn">Copy active tab</button><button class="secondary" id="downloadBtn">Download scripts</button><button class="light" id="resetBtn">Reset</button></div></div>
-        <div class="panel info"><strong>Important</strong>This page gives script output and guidance only. Run the script on the target server or on an approved admin workstation.</div>
-        <div class="readiness-card" id="readinessSummary" style="display:none"></div>
-        <div class="subtabs" id="outputTabs"><button id="btnOutLinux" class="subtab-btn active" data-subtab="out-linux">Linux OpenSSL</button><button id="btnOutPS" class="subtab-btn" data-subtab="out-ps">Windows PowerShell</button><button id="btnOutGUI" class="subtab-btn" data-subtab="out-gui">Windows IIS GUI</button></div>
+        <div class="output-head">
+          <h2 class="section-title" style="margin:0;">Generated output</h2>
+          <div class="actions" style="margin-top:0;">
+            <button class="primary" id="regenerateBtn">Regenerate</button>
+            <button class="secondary" id="copyActiveBtn">Copy active tab</button>
+            <button class="secondary" id="downloadBtn">Download scripts</button>
+            <button class="light" id="printBtn">Print</button>
+            <button class="light" id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <div class="panel info">
+          <strong>Important</strong>
+          This page gives script output and guidance only. Run the script on the target server or on an approved admin workstation.
+        </div>
+
+        <div class="collapsible open" id="colReadiness">
+          <button class="collapsible-head" type="button"><span>Readiness Summary</span><span>−</span></button>
+          <div class="collapsible-body"><div id="readinessSummary" class="readiness-card" style="display:none;"></div></div>
+        </div>
+
+        <div class="collapsible" id="colOps">
+          <button class="collapsible-head" type="button"><span>Operator Checklist</span><span>+</span></button>
+          <div class="collapsible-body">
+            <div id="operatorChecklist" class="readiness-card" style="display:none;">
+              <div class="readiness-top">
+                <div><div class="readiness-title">Operator Checklist</div><div class="hint">A quick run sheet for the team handling CSR generation, submission, issuance, and certificate deployment.</div></div>
+                <div class="readiness-score"><div class="big">OPS</div><div class="hint">execution view</div></div>
+              </div>
+              <div class="readiness-grid">
+                <div class="readiness-box"><h4>Before you submit</h4><ul id="checkBeforeSubmit"></ul></div>
+                <div class="readiness-box"><h4>After issuance</h4><ul id="checkAfterIssuance"></ul></div>
+                <div class="readiness-box"><h4>Before binding / deployment</h4><ul id="checkBeforeBinding"></ul></div>
+                <div class="readiness-box"><h4>Evidence to retain</h4><ul id="checkEvidence"></ul></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subtabs" id="outputTabs">
+          <button id="btnOutLinux" class="subtab-btn active" data-subtab="out-linux">Linux OpenSSL</button>
+          <button id="btnOutPS" class="subtab-btn" data-subtab="out-ps">Windows PowerShell</button>
+          <button id="btnOutGUI" class="subtab-btn" data-subtab="out-gui">Windows IIS GUI</button>
+        </div>
+
         <div id="out-linux" class="subtab-panel active"><div class="field"><label for="outputLinux">Linux OpenSSL script</label><textarea id="outputLinux" readonly></textarea></div></div>
         <div id="out-ps" class="subtab-panel"><div class="field"><label for="outputPS">Windows PowerShell script</label><textarea id="outputPS" readonly></textarea></div></div>
         <div id="out-gui" class="subtab-panel"><div class="field"><label for="outputGUI">Windows IIS GUI guidance</label><textarea id="outputGUI" readonly></textarea></div></div>
-        <div class="collapsible open" id="colDetails"><button class="collapsible-head" type="button"><span>Check Details</span><span>−</span></button><div class="collapsible-body"><div id="resultArea"></div></div></div>
+
+        <div class="collapsible open" id="colDetails">
+          <button class="collapsible-head" type="button"><span>Check Details</span><span>−</span></button>
+          <div class="collapsible-body"><div id="resultArea"></div></div>
+        </div>
       </div>
 
       <div id="tab-decoder" class="tab-panel">
         <div class="decoder-shell">
-          <h2 class="decoder-title">CSR Decoder</h2>
-          <p class="decoder-sub">Local browser decoding only. Paste or load an ECC CSR in PEM or DER form to inspect the request, fingerprints, SAN values, and validation checks.</p>
-          <textarea id="decoderInput" class="decoder-input" placeholder="Paste your CSR here
+          <div class="decoder-top">
+            <div class="decoder-brand"><div class="decoder-brand-badge">C</div><div>ECC CSR Decoder</div></div>
+          </div>
+          <h2 class="decoder-title">ECC CSR Decoder</h2>
+          <p class="decoder-sub">Decode and inspect ECC Certificate Signing Requests only. Accepted input: PEM CSR or DER CSR.</p>
+          <div class="decoder-input-panel">
+            <textarea id="pemInput" class="decoder-textarea" placeholder="Paste your PEM-encoded ECC CSR here...
 
------BEGIN CERTIFICATE REQUEST-----"></textarea>
-          <input id="decoderFileInput" type="file" hidden accept=".pem,.csr,.req,.der,.txt">
-          <div class="decoder-toolbar" style="margin-top:12px"><button id="decoderDecodeBtn" class="decoder-btn decoder-btn-primary">Decode CSR</button><button id="decoderLoadBtn" class="decoder-btn decoder-btn-outline">Load from File</button><button id="decoderExampleBtn" class="decoder-btn decoder-btn-outline">Load Example</button><button id="decoderClearBtn" class="decoder-btn decoder-btn-outline">Clear</button></div>
-          <div id="decoderFileMeta" class="small-note" style="margin-top:10px"></div>
-          <div id="decoderError" class="decoder-error"></div>
-          <div id="decoderResults" class="decoder-results"></div>
+(Begins with -----BEGIN CERTIFICATE REQUEST-----)"></textarea>
+            <input id="fileInput" class="decoder-file-input" type="file" accept=".pem,.csr,.req,.der,.txt" />
+            <div class="decoder-toolbar">
+              <button class="decoder-btn decoder-btn-primary" id="decodeBtn" type="button">Decode</button>
+              <button class="decoder-btn decoder-btn-outline" id="loadFileBtn" type="button">Load from File</button>
+              <button class="decoder-btn decoder-btn-outline" id="loadExampleCsrBtn" type="button">Load ECC Example CSR</button>
+              <button class="decoder-btn decoder-btn-danger" id="clearBtn" type="button" style="display:none;">Clear</button>
+            </div>
+            <div class="small-note">This decoder does not accept certificates. It is limited to ECC CSR testing.</div>
+            <div class="decoder-error" id="errorBox"></div>
+          </div>
+          <div class="decoder-results" id="results"></div>
+          <div class="decoder-footer">All decoding is performed locally in your browser. No data is sent to any server.</div>
         </div>
       </div>
 
       <div id="tab-validate" class="tab-panel">
         <h2 class="section-title">Post-Deployment Validation</h2>
-        <div class="readiness-card" id="postDeployChecklist">
-          <div class="readiness-grid">
-            <div class="readiness-box"><h4>Immediate validation</h4><ul id="checkImmediateValidation"></ul></div>
-            <div class="readiness-box"><h4>Certificate and chain</h4><ul id="checkCertChain"></ul></div>
-            <div class="readiness-box"><h4>Service-specific checks</h4><ul id="checkServiceSpecific"></ul></div>
-            <div class="readiness-box"><h4>Close-out actions</h4><ul id="checkCloseOut"></ul></div>
+        <div class="panel info"><strong>Purpose</strong>Use this section after the certificate has been installed and bound, to verify that the service is actually presenting the correct certificate and chain.</div>
+        <div class="collapsible open" id="colPostDeploy">
+          <button class="collapsible-head" type="button"><span>Post-Deployment Validation Checklist</span><span>−</span></button>
+          <div class="collapsible-body">
+            <div id="postDeployChecklist" class="readiness-card" style="display:none;">
+              <div class="readiness-top">
+                <div><div class="readiness-title">Post-Deployment Validation Checklist</div><div class="hint">Use this to confirm the new certificate is served correctly after deployment.</div></div>
+                <div class="readiness-score"><div class="big">TLS</div><div class="hint">live check</div></div>
+              </div>
+              <div class="readiness-grid">
+                <div class="readiness-box"><h4>Immediate validation</h4><ul id="checkImmediateValidation"></ul></div>
+                <div class="readiness-box"><h4>Certificate and chain</h4><ul id="checkCertChain"></ul></div>
+                <div class="readiness-box"><h4>Service-specific checks</h4><ul id="checkServiceSpecific"></ul></div>
+                <div class="readiness-box"><h4>Close-out actions</h4><ul id="checkCloseOut"></ul></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div id="tab-kb" class="tab-panel">
         <h2 class="section-title">Built-in knowledge bank</h2>
-        <div class="readiness-card"><div class="readiness-grid"><div class="readiness-box"><h4>ECC profile</h4><ul><li>P-384 / secp384r1 / SHA-256</li><li>PowerShell + certreq for Windows</li><li>OpenSSL path for Linux</li></ul></div><div class="readiness-box"><h4>Decoder scope</h4><ul><li>Certificates</li><li>CSRs</li><li>PKCS#7 and CMS</li><li>CRLs and SSL hostname checking</li></ul></div></div></div>
+        <table class="mini-table">
+          <thead><tr><th>Rule</th><th>Current threshold</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>ECC profile</td><td>P-384 / secp384r1 / SHA-256</td><td>Normalises all generated guidance to the target ECC profile.</td></tr>
+            <tr><td>Windows baseline</td><td>Server 2012+</td><td>Warns when Windows looks too old for reliable ECC workflows.</td></tr>
+            <tr><td>IIS baseline</td><td>IIS 8.0+</td><td>Warns when IIS looks too old for smooth ECC request handling and deployment.</td></tr>
+            <tr><td>CentOS baseline</td><td>CentOS 7+</td><td>Warns when Linux stack likely carries outdated crypto libraries.</td></tr>
+            <tr><td>OpenSSL baseline</td><td>1.1.1+</td><td>Checks library age against the expected ECC path.</td></tr>
+            <tr><td>Apache baseline</td><td>2.4.54+</td><td>Checks web server age against the expected ECC path.</td></tr>
+            <tr><td>XAMPP baseline</td><td>7.4.33+</td><td>Checks bundled stack age against the expected ECC path.</td></tr>
+            <tr><td>PHP baseline</td><td>7.4.33+</td><td>Checks bundled stack age against the expected ECC path.</td></tr>
+            <tr><td>CSR decoder policy</td><td>ECC only</td><td>Decoder flags RSA and other non-ECC CSRs as policy failures.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
     <div class="drawer">
-      <div class="card" style="padding:18px">
-        <h3 style="margin:0 0 10px">Why this layout changed</h3>
-        <div class="accordion">
-          <div class="acc-item"><button class="acc-head" type="button">Main page first <span>+</span></button><div class="acc-body">The CSR assistant now leads the page because the core purpose is to help the operator produce the right request script before anything else.</div></div>
-          <div class="acc-item"><button class="acc-head" type="button">Decoder under one tab <span>+</span></button><div class="acc-body">The broader PKI decoder remains present, but it now supports the main workflow rather than competing with it.</div></div>
-          <div class="acc-item"><button class="acc-head" type="button">Hybrid Cloudflare path <span>+</span></button><div class="acc-body">Local decode protects pasted material. Edge mode and SSL checking keep the Cloudflare server-side route ready for live certificate inspection.</div></div>
+      <div class="card">
+        <div class="card-body" style="padding:18px;">
+          <h3>Why this warning matters</h3>
+          <div class="accordion">
+            <div class="acc-item"><button class="acc-head" type="button">OpenSSL too old <span>+</span></button><div class="acc-body">Older cryptographic libraries are a common source of ECC request failure or inconsistent behaviour. If the stack is old, the command may run but the output may not meet the intended profile cleanly.</div></div>
+            <div class="acc-item"><button class="acc-head" type="button">Older Windows / IIS <span>+</span></button><div class="acc-body">Older Windows Server and IIS stacks can make ECC request generation, storage provider handling, or later certificate binding harder than expected. This is why the app asks for both Windows and IIS versions.</div></div>
+            <div class="acc-item"><button class="acc-head" type="button">Bundled stacks like XAMPP <span>+</span></button><div class="acc-body">Bundled platforms often carry multiple versions underneath. A problem might not be the visible application layer alone, but Apache, PHP, or OpenSSL sitting behind it.</div></div>
+            <div class="acc-item"><button class="acc-head" type="button">Why SAN matters <span>+</span></button><div class="acc-body">Modern certificate use commonly expects Subject Alternative Names. Even if CN is present, SAN should be explicit so the request matches current hostname validation practice.</div></div>
+          </div>
+          <div class="reference">Internal note: this build is restricted to ECC CSR generation and ECC CSR decoding only.</div>
         </div>
       </div>
     </div>
@@ -175,168 +484,56 @@
 </div>
 
 <script>
-const KB={baselines:{opensslMin:'1.1.1',windowsMinYear:2012,linuxCentOSMin:7,apacheMin:'2.4.54',xamppMin:'7.4.33',phpMin:'7.4.33',iisMinMajor:'8.0'}};
-const OS_OPTIONS={Windows:[{value:'Windows Server',label:'Windows Server'},{value:'Windows Client',label:'Windows (Client)'},{value:'Other Windows',label:'Other Windows'}],Linux:[{value:'CentOS',label:'CentOS'},{value:'RHEL',label:'RHEL'},{value:'Ubuntu',label:'Ubuntu'},{value:'Debian',label:'Debian'},{value:'Rocky',label:'Rocky Linux'},{value:'AlmaLinux',label:'AlmaLinux'},{value:'Other Linux',label:'Other Linux'}]};
-const SERVER_OPTIONS={Windows:[{value:'IIS',label:'IIS'},{value:'Apache',label:'Apache'},{value:'Nginx',label:'Nginx'},{value:'XAMPP',label:'XAMPP'},{value:'Tomcat',label:'Tomcat / Java stack'},{value:'Other',label:'Other'}],Linux:[{value:'Apache',label:'Apache'},{value:'Nginx',label:'Nginx'},{value:'XAMPP',label:'XAMPP'},{value:'Tomcat',label:'Tomcat / Java stack'},{value:'Other',label:'Other'}]};
-let lastDownloads=[]; let flashTimer=null;
-window.byId=id=>document.getElementById(id); window.qsa=(sel,p=document)=>Array.from(p.querySelectorAll(sel)); const byId=window.byId, qsa=window.qsa;
-function normalise(v){return String(v||'').trim();}
-function showFlash(message,type='ok'){const f=byId('flash');f.className=`flash ${type}`;f.textContent=message;f.style.display='block';clearTimeout(flashTimer);flashTimer=setTimeout(()=>f.style.display='none',2600)}
-function fillSelect(el,options){el.innerHTML=''; options.forEach(opt=>{const o=document.createElement('option'); o.value=opt.value; o.textContent=opt.label; el.appendChild(o);});}
-window.showTab=function showTab(tabId){qsa('.tab-panel').forEach(p=>p.classList.remove('active'));qsa('.tab-btn').forEach(b=>b.classList.remove('active'));byId(tabId).classList.add('active');qsa('.tab-btn').find(b=>b.dataset.tab===tabId)?.classList.add('active');}
-window.showSubtab=function showSubtab(id){qsa('.subtab-panel').forEach(p=>p.classList.remove('active'));qsa('.subtab-btn').forEach(b=>b.classList.remove('active'));byId(id).classList.add('active');qsa('.subtab-btn').filter(b=>b.dataset.subtab===id).forEach(b=>b.classList.add('active'));}
-function toggleCollapse(btn){const item=btn.closest('.collapsible'); item.classList.toggle('open'); btn.querySelector('span:last-child').textContent=item.classList.contains('open')?'−':'+';}
-function toggleAcc(btn){const item=btn.closest('.acc-item'); item.classList.toggle('open'); btn.querySelector('span').textContent=item.classList.contains('open')?'−':'+';}
-function setHidden(id,hidden){byId(id).hidden=hidden;}
-function onPlatformChange(){const platform=byId('platform').value; fillSelect(byId('osName'),OS_OPTIONS[platform]); fillSelect(byId('server'),SERVER_OPTIONS[platform]); onServerChange(); syncOutputTabs();}
-function onServerChange(){const server=byId('server').value; setHidden('field_iisVersion',server!=='IIS'); setHidden('field_iisMethod',server!=='IIS'); setHidden('field_nginxVersion',server!=='Nginx'); setHidden('field_apacheVersion',!(server==='Apache'||server==='XAMPP')); setHidden('field_xamppVersion',server!=='XAMPP'); setHidden('field_phpVersion',server!=='XAMPP'); syncOutputTabs();}
-function syncOutputTabs(){const platform=byId('platform').value, server=byId('server').value, iisMethod=byId('iisMethod').value; byId('btnOutLinux').style.display=platform==='Linux'?'':'none'; byId('btnOutPS').style.display=(platform==='Windows'&&(server!=='IIS'||iisMethod==='powershell'||iisMethod==='both'))?'':'none'; byId('btnOutGUI').style.display=(platform==='Windows'&&server==='IIS'&&(iisMethod==='gui'||iisMethod==='both'))?'':'none'; if(platform==='Linux') activateOutputSubtab('out-linux'); else if(server==='IIS'&&iisMethod==='gui') activateOutputSubtab('out-gui'); else activateOutputSubtab('out-ps');}
-function activateOutputSubtab(id){['out-linux','out-ps','out-gui'].forEach(x=>byId(x).classList.remove('active')); qsa('#outputTabs .subtab-btn').forEach(x=>x.classList.remove('active')); byId(id).classList.add('active'); qsa('#outputTabs .subtab-btn').find(x=>x.dataset.subtab===id)?.classList.add('active');}
-function parseNums(v){const m=String(v||'').match(/\d+/g); return m?m.map(n=>parseInt(n,10)):null;}
-function compareVersions(a,b){const x=parseNums(a),y=parseNums(b); if(!x||!y)return null; const len=Math.max(x.length,y.length); for(let i=0;i<len;i++){const p=x[i]||0,q=y[i]||0; if(p>q)return 1; if(p<q)return -1;} return 0;}
-function extractWindowsYear(text){const m=String(text||'').match(/(2008|2012|2016|2019|2022|2025)/); return m?parseInt(m[1],10):null;}
-function extractMajor(text){const m=String(text||'').match(/(\d+)/); return m?parseInt(m[1],10):null;}
-function safeFileBase(cn){const out=String(cn||'server').trim().replace(/[^a-zA-Z0-9._-]/g,'_'); return out||'server';}
-function isValidHostname(host){if(!host||host.length>253)return false; if(host.startsWith('*.')) host=host.slice(2); return host.split('.').every(part=>/^[a-zA-Z0-9-]{1,63}$/.test(part)&&!part.startsWith('-')&&!part.endsWith('-'));}
-function isValidIP(ip){return /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ip);}
-function buildSANList(rawSAN,cn){const input=rawSAN.split(',').map(x=>x.trim()).filter(Boolean); const values=[], seen=new Set(); if(cn) input.unshift(cn); for(const entry of input){const lower=entry.toLowerCase(); let item=null; if(lower.startsWith('ip:')){const ip=entry.slice(3).trim(); if(isValidIP(ip)) item={type:'IP',value:ip};} else if(isValidHostname(entry)){item={type:'DNS',value:entry};} if(!item) continue; const key=`${item.type}:${item.value.toLowerCase()}`; if(seen.has(key)) continue; seen.add(key); values.push(item);} return values;}
-function readForm(){const data={platform:normalise(byId('platform').value),osName:normalise(byId('osName').value),osVersion:normalise(byId('osVersion').value),server:normalise(byId('server').value),iisVersion:normalise(byId('iisVersion').value),iisMethod:normalise(byId('iisMethod').value),nginxVersion:normalise(byId('nginxVersion').value),apacheVersion:normalise(byId('apacheVersion').value),xamppVersion:normalise(byId('xamppVersion').value),phpVersion:normalise(byId('phpVersion').value),opensslVersion:normalise(byId('opensslVersion').value),opensshVersion:normalise(byId('opensshVersion').value),cn:normalise(byId('cn').value),san:normalise(byId('san').value),org:normalise(byId('org').value),ou:normalise(byId('ou').value),city:normalise(byId('city').value),state:normalise(byId('state').value),country:normalise(byId('country').value).toUpperCase(),email:normalise(byId('email').value)}; data.sans=buildSANList(data.san,data.cn); data.fileBase=safeFileBase(data.cn); return data;}
-function validate(data){const errors=[]; ['cn','org','ou','city','state','country'].forEach(k=>{if(!data[k]) errors.push(`Missing ${k.toUpperCase()}.`);}); if(data.country&&data.country.length!==2) errors.push('Country must be a valid 2-letter code.'); if(!isValidHostname(data.cn)) errors.push('CN must be a valid DNS name.'); if(data.sans.length===0) errors.push('At least one valid SAN entry is required.'); return errors;}
-function sanOpenSslParts(sans){return sans.map(item=>`${item.type}:${item.value}`).join(',');}
-function sanInfLines(sans){const values=sans.map(item=>`${item.type}=${item.value}`); return values.map((v,i)=>`_continue_ = "${v}${i<values.length-1?'&':''}"`).join('\n');}
-function buildLinuxScript(data){const keyFile=`${data.fileBase}.key`,csrFile=`${data.fileBase}.csr`,confFile=`${data.fileBase}-csr.conf`; const installHint=data.server==='Nginx'?`# Nginx reminder
-# ssl_certificate     /etc/nginx/ssl/${data.fileBase}.crt;
-# ssl_certificate_key /etc/nginx/ssl/${keyFile};
-# nginx -t && systemctl reload nginx`:(data.server==='Apache'?`# Apache reminder
-# SSLCertificateFile    /etc/httpd/ssl/${data.fileBase}.crt
-# SSLCertificateKeyFile /etc/httpd/ssl/${keyFile}
-# apachectl -t && systemctl reload httpd`:(data.server==='Tomcat'?`# Tomcat reminder
-# Convert the issued certificate and key to PKCS#12 when required by your connector.
-# Keep the private key under controlled access.`:`# Generic reminder
-# Store the issued certificate and private key in the approved service path.`)); return `# Linux ECC CSR generation
-# Target curve: secp384r1 (P-384)
-# Hash: SHA-256
-# Server family: ${data.server || 'Generic Linux'}
-# OpenSSL reported: ${data.opensslVersion || 'not provided'}
+const KB = {
+  baselines: {
+    opensslMin: '1.1.1',
+    opensshMin: '1.1.1',
+    windowsMinYear: 2012,
+    linuxCentOSMin: 7,
+    apacheMin: '2.4.54',
+    xamppMin: '7.4.33',
+    phpMin: '7.4.33',
+    iisMinMajor: '8.0'
+  },
+  countryCodes: new Set(['AD','AE','AF','AG','AI','AL','AM','AO','AQ','AR','AS','AT','AU','AW','AX','AZ','BA','BB','BD','BE','BF','BG','BH','BI','BJ','BL','BM','BN','BO','BQ','BR','BS','BT','BV','BW','BY','BZ','CA','CC','CD','CF','CG','CH','CI','CK','CL','CM','CN','CO','CR','CU','CV','CW','CX','CY','CZ','DE','DJ','DK','DM','DO','DZ','EC','EE','EG','EH','ER','ES','ET','FI','FJ','FK','FM','FO','FR','GA','GB','GD','GE','GF','GG','GH','GI','GL','GM','GN','GP','GQ','GR','GS','GT','GU','GW','GY','HK','HM','HN','HR','HT','HU','ID','IE','IL','IM','IN','IO','IQ','IR','IS','IT','JE','JM','JO','JP','KE','KG','KH','KI','KM','KN','KP','KR','KW','KY','KZ','LA','LB','LC','LI','LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME','MF','MG','MH','MK','ML','MM','MN','MO','MP','MQ','MR','MS','MT','MU','MV','MW','MX','MY','MZ','NA','NC','NE','NF','NG','NI','NL','NO','NP','NR','NU','NZ','OM','PA','PE','PF','PG','PH','PK','PL','PM','PN','PR','PS','PT','PW','PY','QA','RE','RO','RS','RU','RW','SA','SB','SC','SD','SE','SG','SH','SI','SJ','SK','SL','SM','SN','SO','SR','SS','ST','SV','SX','SY','SZ','TC','TD','TF','TG','TH','TJ','TK','TL','TM','TN','TO','TR','TT','TV','TW','TZ','UA','UG','UM','US','UY','UZ','VA','VC','VE','VG','VI','VN','VU','WF','WS','YE','YT','ZA','ZM','ZW'])
+};
 
-set -euo pipefail
-umask 077
+const OS_OPTIONS = {
+  Windows: [
+    { value: 'Windows Server', label: 'Windows Server' },
+    { value: 'Windows Client', label: 'Windows (Client)' },
+    { value: 'Other Windows', label: 'Other Windows' }
+  ],
+  Linux: [
+    { value: 'CentOS', label: 'CentOS' },
+    { value: 'RHEL', label: 'RHEL' },
+    { value: 'Ubuntu', label: 'Ubuntu' },
+    { value: 'Debian', label: 'Debian' },
+    { value: 'Rocky', label: 'Rocky Linux' },
+    { value: 'AlmaLinux', label: 'AlmaLinux' },
+    { value: 'Other Linux', label: 'Other Linux' }
+  ]
+};
 
-KEY_FILE="${keyFile}"
-CSR_FILE="${csrFile}"
-CONF_FILE="${confFile}"
+const SERVER_OPTIONS = {
+  Windows: [
+    { value: 'IIS', label: 'IIS' },
+    { value: 'Apache', label: 'Apache' },
+    { value: 'Nginx', label: 'Nginx' },
+    { value: 'XAMPP', label: 'XAMPP' },
+    { value: 'Tomcat', label: 'Tomcat / Java stack' },
+    { value: 'Other', label: 'Other' }
+  ],
+  Linux: [
+    { value: 'Apache', label: 'Apache' },
+    { value: 'Nginx', label: 'Nginx' },
+    { value: 'XAMPP', label: 'XAMPP' },
+    { value: 'Tomcat', label: 'Tomcat / Java stack' },
+    { value: 'Other', label: 'Other' }
+  ]
+};
 
-cat > "$CONF_FILE" <<'EOF'
-[ req ]
-default_md = sha256
-prompt = no
-distinguished_name = dn
-req_extensions = req_ext
-
-[ dn ]
-C = ${data.country}
-ST = ${data.state}
-L = ${data.city}
-O = ${data.org}
-OU = ${data.ou}
-CN = ${data.cn}${data.email?`
-emailAddress = ${data.email}`:''}
-
-[ req_ext ]
-subjectAltName = ${sanOpenSslParts(data.sans)}
-keyUsage = critical,digitalSignature,keyAgreement
-extendedKeyUsage = serverAuth
-EOF
-
-openssl version
-openssl ecparam -name secp384r1 -genkey -noout -out "$KEY_FILE"
-openssl req -new -sha256 -key "$KEY_FILE" -out "$CSR_FILE" -config "$CONF_FILE"
-openssl req -in "$CSR_FILE" -noout -text
-
-echo "CSR created: $CSR_FILE"
-echo "Private key created: $KEY_FILE"
-
-${installHint}
-`;}
-function buildWindowsINF(data){const machineKey=data.server==='IIS'?'TRUE':'TRUE'; const exportable=data.server==='IIS'?'FALSE':'FALSE'; return `[Version]
-Signature="$Windows NT$"
-
-[NewRequest]
-Subject = "CN=${data.cn}, O=${data.org}, OU=${data.ou}, L=${data.city}, S=${data.state}, C=${data.country}${data.email?`, E=${data.email}`:''}"
-MachineKeySet = ${machineKey}
-Exportable = ${exportable}
-RequestType = PKCS10
-KeyAlgorithm = ECDSA_P384
-KeyLength = 384
-HashAlgorithm = SHA256
-ProviderName = "Microsoft Software Key Storage Provider"
-KeyUsage = 0x80
-FriendlyName = "${data.cn} ECC P-384"
-SMIME = FALSE
-
-[Extensions]
-2.5.29.17 = "{text}"
-${sanInfLines(data.sans)}
-
-[EnhancedKeyUsageExtension]
-OID=1.3.6.1.5.5.7.3.1
-`}
-function buildWindowsPowerShell(data){const infName=`${data.fileBase}-request.inf`, reqName=`${data.fileBase}-request.req`; const acceptNote=data.server==='IIS'?'Write-Host "After issuance, accept the certificate and bind it in IIS Server Certificates / Site Bindings."':'Write-Host "After issuance, import or accept the certificate in the intended Windows store or application path."'; return `# Windows PowerShell ECC CSR generation
-# Target curve: P-384
-# Hash: SHA-256
-# Windows stack: ${data.server}${data.iisVersion?` ${data.iisVersion}`:''}
-
-$InfPath = Join-Path (Get-Location) "${infName}"
-$ReqPath = Join-Path (Get-Location) "${reqName}"
-
-$InfContent = @"
-${buildWindowsINF(data).replace(/`/g,'``')}
-"@
-
-Set-Content -Path $InfPath -Value $InfContent -Encoding ascii
-Write-Host "Generating ECC CSR request..." -ForegroundColor Cyan
-certreq -new $InfPath $ReqPath
-Write-Host "Request file created:" $ReqPath -ForegroundColor Green
-Write-Host "INF file created:" $InfPath -ForegroundColor Green
-Write-Host "Submit the original .req file to the CA."
-${acceptNote}
-Write-Host "Accept command example: certreq -accept .\issued.cer"
-`;}
-function buildWindowsGUIGuidance(data){return `# IIS GUI guidance
-# Intended profile: ECC P-384 with SHA-256
-# Host: ${data.cn}
-
-1. Open IIS Manager.
-2. Select the server node, then open Server Certificates.
-3. Choose Create Certificate Request.
-4. Populate the subject fields exactly as follows:
-   - CN = ${data.cn}
-   - O  = ${data.org}
-   - OU = ${data.ou}
-   - L  = ${data.city}
-   - ST = ${data.state}
-   - C  = ${data.country}
-5. Under cryptographic options choose:
-   - Provider: Microsoft Software Key Storage Provider
-   - Bit length / ECC path: 384-bit
-6. Save the CSR to an approved location.
-7. Review the request carefully. If SAN must be embedded in the CSR itself, prefer the PowerShell + certreq path because it gives tighter control over SAN entries.
-8. After issuance, complete the request and bind the certificate to the intended IIS site.
-`;}
-function assess(data){let score=100,ok=0,warn=0,fail=0; const rows=[]; const push=(label,status,detail)=>{rows.push({label,status,detail}); if(status==='pass') ok++; if(status==='warning'){warn++; score-=10;} if(status==='fail'){fail++; score-=25;}}; const opensslCmp=data.opensslVersion?compareVersions(data.opensslVersion,KB.baselines.opensslMin):null; push('SAN presence',data.sans.length?'pass':'fail',data.sans.length?`${data.sans.length} SAN value(s) present.`:'No valid SAN value found.'); push('OpenSSL baseline',!data.opensslVersion?'warning':opensslCmp===null?'warning':opensslCmp<0?'fail':'pass',data.opensslVersion?`Detected ${data.opensslVersion}.`:'OpenSSL version not provided.'); if(data.platform==='Windows'){const year=extractWindowsYear(data.osVersion)||extractMajor(data.osVersion); push('Windows baseline',year&&year>=KB.baselines.windowsMinYear?'pass':year?'fail':'warning',data.osVersion||'Windows version not provided.'); if(data.server==='IIS'){const iisCmp=data.iisVersion?compareVersions(data.iisVersion,KB.baselines.iisMinMajor):null; push('IIS baseline',!data.iisVersion?'warning':iisCmp===null?'warning':iisCmp<0?'fail':'pass',data.iisVersion||'IIS version not provided.');}} if(data.platform==='Linux'&&data.osName==='CentOS'){const major=extractMajor(data.osVersion); push('CentOS baseline',major&&major>=KB.baselines.linuxCentOSMin?'pass':major?'fail':'warning',data.osVersion||'CentOS version not provided.');} return {score:Math.max(0,score),ok,warn,fail,rows};}
-function renderSummary(data,res){const box=byId('readinessSummary'); const path=data.platform==='Linux'?(data.server==='Nginx'?'Use the Linux OpenSSL script, then map the issued certificate into the Nginx ssl_certificate / ssl_certificate_key path.':data.server==='Apache'?'Use the Linux OpenSSL script, then plan the Apache SSL vhost update and reload.':'Use the Linux OpenSSL script for the target host.'):(data.server==='IIS'?(data.iisMethod==='gui'?'Use the IIS GUI guidance only if SAN handling is acceptable in your environment.':'Use the PowerShell + certreq path so SAN handling stays explicit.'):'Use the Windows PowerShell output that matches the host.'); box.style.display='block'; box.innerHTML=`<h3 style="margin:0 0 8px">Readiness Summary</h3><div class="summary-box"><div class="mini"><div class="n">${res.score}</div><div class="t">Health score</div></div><div class="mini"><div class="n">${res.ok}</div><div class="t">Checks passed</div></div><div class="mini"><div class="n">${res.fail}</div><div class="t">Failures</div></div></div><div class="readiness-grid"><div class="readiness-box"><h4>Recommended path</h4><ul><li>${path}</li><li>Generate on the target server or approved admin workstation.</li><li>Submit the original request file.</li><li>Retain the key under controlled access.</li></ul></div><div class="readiness-box"><h4>Environment snapshot</h4><ul><li>${data.platform} / ${data.osName} ${data.osVersion||''}</li><li>${data.server} ${data.iisVersion||data.apacheVersion||data.nginxVersion||''}</li><li>OpenSSL ${data.opensslVersion||'not provided'}</li><li>CN ${data.cn}</li></ul></div><div class="readiness-box"><h4>Target-specific reminders</h4><ul>${data.server==='IIS'?'<li>Check provider choice carefully in the request wizard.</li><li>Prefer PowerShell when SAN values must be controlled directly.</li>':data.server==='Nginx'?'<li>Validate nginx -t before reload.</li><li>Keep the certificate and key file path aligned with the live server block.</li>':data.server==='Apache'?'<li>Validate the SSL vhost before reload.</li><li>Confirm the certificate file and key file are mapped to the intended virtual host.</li>':'<li>Review the target application import path before deployment.</li>'}</ul></div><div class="readiness-box"><h4>Submission discipline</h4><ul><li>Use the original generated request file.</li><li>Do not copy CSR content through chat or email unless formally approved.</li><li>Verify CN and SAN one final time before submission.</li></ul></div></div>`;}
-function renderAssessment(res){byId('resultArea').innerHTML=`<div class="readiness-card">${res.rows.map(r=>`<div class="panel ${r.status==='pass'?'ok':r.status==='fail'?'bad':'warn'}"><strong>${r.label}</strong>${r.detail}</div>`).join('')}</div>`; byId('scoreNumber').textContent=res.score; byId('scoreSub').textContent=`${res.ok} passed, ${res.warn} warnings, ${res.fail} failures`; byId('scoreBar').style.width=`${res.score}%`; byId('quickPills').innerHTML=`<div class="pill">Passed: ${res.ok}</div><div class="pill">Warnings: ${res.warn}</div><div class="pill">Failures: ${res.fail}</div>`;}
-function fillValidationChecklist(data){const sanText=data.sans.map(x=>`${x.type}:${x.value}`).join(', '); const set=(id,items)=>byId(id).innerHTML=items.map(x=>`<li>${x}</li>`).join(''); set('checkImmediateValidation',['Open the site in a browser and confirm HTTPS loads cleanly.',`Verify the certificate covers ${sanText}.`,'Confirm the presented certificate is the newly issued one.']); set('checkCertChain',['Check that the full chain is presented.','Confirm the issuing CA and intermediates are correct.','Verify the live certificate is ECC and not an unexpected fallback.']); set('checkServiceSpecific',[data.server==='IIS'?'Confirm the IIS binding uses the intended certificate.':'Confirm the service configuration points to the intended certificate and key.','Reload or restart the service cleanly.']); set('checkCloseOut',['Record the deployment time.','Keep evidence such as screenshot or command output.','Close the change only after successful live validation.']);}
-function downloadText(filename,content){const blob=new Blob([content],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);}
-function getActiveOutputArea(){if(byId('out-linux').classList.contains('active')) return byId('outputLinux'); if(byId('out-ps').classList.contains('active')) return byId('outputPS'); return byId('outputGUI');}
-function generateAll(){const data=readForm(); const errors=validate(data); if(errors.length){showFlash(errors[0],'bad'); showTab('tab-cert'); return;} byId('outputLinux').value=buildLinuxScript(data); byId('outputPS').value=buildWindowsPowerShell(data); byId('outputGUI').value=buildWindowsGUIGuidance(data); const res=assess(data); renderSummary(data,res); renderAssessment(res); fillValidationChecklist(data); lastDownloads=[{filename:`${data.fileBase}-linux-openssl.sh`,content:byId('outputLinux').value},{filename:`${data.fileBase}-windows-certreq.ps1`,content:byId('outputPS').value},{filename:`${data.fileBase}-windows-gui.txt`,content:byId('outputGUI').value}]; syncOutputTabs(); showTab('tab-output'); showFlash('ECC CSR scripts and checks were generated.','ok');}
-function resetAll(){location.reload();}
-qsa('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab))); qsa('#outputTabs .subtab-btn').forEach(btn=>btn.addEventListener('click',()=>activateOutputSubtab(btn.dataset.subtab))); qsa('.acc-head').forEach(btn=>btn.addEventListener('click',()=>toggleAcc(btn))); qsa('.collapsible-head').forEach(btn=>btn.addEventListener('click',()=>toggleCollapse(btn))); byId('platform').addEventListener('change',onPlatformChange); byId('server').addEventListener('change',onServerChange); byId('iisMethod').addEventListener('change',syncOutputTabs); byId('generateBtn').addEventListener('click',generateAll); byId('goOutputBtn').addEventListener('click',()=>showTab('tab-output')); byId('regenerateBtn').addEventListener('click',generateAll); byId('copyActiveBtn').addEventListener('click',async()=>{const area=getActiveOutputArea(); if(!area.value.trim()) return showFlash('Nothing to copy yet.','warn'); try{await navigator.clipboard.writeText(area.value); showFlash('Active output copied.','ok');}catch{showFlash('Clipboard access was blocked.','warn');}}); byId('downloadBtn').addEventListener('click',()=>{if(!lastDownloads.length) return showFlash('Nothing to download yet.','warn'); lastDownloads.forEach(f=>downloadText(f.filename,f.content)); showFlash('Download started.','ok');}); byId('resetBtn').addEventListener('click',resetAll); onPlatformChange();
-</script>
-
-
-<script>
-const EXAMPLE_ECC_CSR=`-----BEGIN CERTIFICATE REQUEST-----
+const EXAMPLE_ECC_CSR = `-----BEGIN CERTIFICATE REQUEST-----
 MIICMDCCAbUCAQAwgc4xCzAJBgNVBAYTAk1ZMSYwJAYDVQQIDB1XaWxheWFoIFBl
 cnNla3V0dWFuIFB1dHJhamF5YTESMBAGA1UEBwwJUHV0cmFqYXlhMRswGQYDVQQK
 DBJBZ2VuY3kgRVhBTVBMRSBHT1YxJDAiBgNVBAsMG0lDVCBTZWN1cml0eSBhbmQg
@@ -350,31 +547,1157 @@ A1UdDwEB/wQEAwIDiDAKBggqhkjOPQQDAgNpADBmAjEAvAqhDhLPPbh9cYrJocX9
 L4aP+FBxi8wOcWSy3I2uf8x/3EunLN4wx7655vVvGBrgAjEAo2Ba1R+0ZD/BRYvR
 I2qi9dudG3IHNSQD/394jNz42pQOLsEybXqAAHxaOO3jL1Wl
 -----END CERTIFICATE REQUEST-----`;
-function decoderShowError(msg){const el=byId('decoderError'); el.style.display='block'; el.textContent=msg;}
-function decoderHideError(){const el=byId('decoderError'); el.style.display='none'; el.textContent='';}
-function uint8ToBinaryString(bytes){let out=''; const chunk=0x8000; for(let i=0;i<bytes.length;i+=chunk) out+=String.fromCharCode.apply(null, bytes.subarray(i,i+chunk)); return out;}
-function wrapPem(label,binary){const b64=forge.util.encode64(binary); const lines=b64.match(/.{1,64}/g)||[]; return `-----BEGIN ${label}-----\n${lines.join('\n')}\n-----END ${label}-----`;}
-async function readCsrFileToPem(file){const buffer=await file.arrayBuffer(); const bytes=new Uint8Array(buffer); let text=''; try{text=new TextDecoder().decode(bytes).trim();}catch{} if(text.includes('-----BEGIN')) return text; return wrapPem('CERTIFICATE REQUEST', uint8ToBinaryString(bytes));}
-function bytesFromPem(pem){const clean=String(pem||'').replace(/\r/g,'').trim(); const b64=clean.replace(/-----BEGIN [^-]+-----/g,'').replace(/-----END [^-]+-----/g,'').replace(/\s+/g,''); const bin=atob(b64); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out;}
-function bytesToHex(bytes){return Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();}
-function formatHexColon(hex){return String(hex||'').match(/.{1,2}/g)?.join(':')||'';}
-function decodeOid(bytes){if(!bytes||!bytes.length) return ''; const first=bytes[0]; const parts=[Math.floor(first/40), first%40]; let value=0; for(let i=1;i<bytes.length;i++){value=(value<<7)|(bytes[i]&0x7f); if(!(bytes[i]&0x80)){parts.push(value); value=0;}} return parts.join('.');}
-function decodeString(tag, bytes){if(!bytes) return ''; if(tag===0x1e){let out=''; for(let i=0;i+1<bytes.length;i+=2) out+=String.fromCharCode((bytes[i]<<8)|bytes[i+1]); return out;} return new TextDecoder('utf-8').decode(bytes);}
-function readAsn1(bytes, offset=0){const tag=bytes[offset]; const lenByte=bytes[offset+1]; let length=0, header=2; if(lenByte<0x80){length=lenByte;} else {const n=lenByte&0x7f; header=2+n; for(let i=0;i<n;i++) length=(length<<8)|bytes[offset+2+i];} const start=offset+header, end=start+length; const node={tag,length,header,start,end,bytes:bytes.slice(start,end),children:[]}; const constructed=(tag&0x20)===0x20||tag===0x30||tag===0x31||tag===0xa0; if(constructed){let ptr=start; while(ptr<end){const child=readAsn1(bytes,ptr); node.children.push(child); ptr=child.end;}} return node;}
-function parseName(node){const out={}; (node.children||[]).forEach(setNode=>{(setNode.children||[]).forEach(seqNode=>{const oidNode=seqNode.children?.[0]; const valNode=seqNode.children?.[1]; if(!oidNode||!valNode) return; const oid=decodeOid(oidNode.bytes); const map={'2.5.4.3':'CN','2.5.4.6':'C','2.5.4.7':'L','2.5.4.8':'ST','2.5.4.10':'O','2.5.4.11':'OU','1.2.840.113549.1.9.1':'emailAddress'}; out[map[oid]||oid]=decodeString(valNode.tag,valNode.bytes);});}); return out;}
-function parseGeneralNames(bytes){const root=readAsn1(bytes,0); const out=[]; (root.children||[]).forEach(child=>{const tag=child.tag; const val=decodeString(0x16, child.bytes); if(tag===0x82) out.push(`DNS:${val}`); else if(tag===0x87) out.push(`IP:${Array.from(child.bytes).join('.')}`); else if(tag===0x81) out.push(`email:${val}`);}); return [...new Set(out)];}
-function parseKeyUsage(bytes){const bitString=readAsn1(bytes,0); const data=bitString.bytes; if(!data.length) return []; const unused=data[0]; const bits=[]; for(let i=1;i<data.length;i++){for(let bit=7;bit>=0;bit--) bits.push((data[i]>>bit)&1);} if(unused) bits.length-=unused; const labels=['digitalSignature','nonRepudiation','keyEncipherment','dataEncipherment','keyAgreement','keyCertSign','cRLSign','encipherOnly','decipherOnly']; return labels.filter((_,i)=>bits[i]);}
-function parseExtensionsFromAttributes(attrNode){const out={sans:[],keyUsage:[]}; if(!attrNode) return out; (attrNode.children||[]).forEach(attr=>{const oidNode=attr.children?.[0]; const valsNode=attr.children?.[1]; if(!oidNode||!valsNode) return; const oid=decodeOid(oidNode.bytes); if(oid!=='1.2.840.113549.1.9.14') return; const extSeq=valsNode.children?.[0]; if(!extSeq) return; (extSeq.children||[]).forEach(ext=>{const extOidNode=ext.children?.[0]; let idx=1; if(!extOidNode) return; const extOid=decodeOid(extOidNode.bytes); if(ext.children?.[1]?.tag===0x01) idx=2; const octetNode=ext.children?.[idx]; if(!octetNode) return; if(extOid==='2.5.29.17') out.sans=parseGeneralNames(octetNode.bytes); if(extOid==='2.5.29.15') out.keyUsage=parseKeyUsage(octetNode.bytes);});}); return out;}
-function parseCsrLocal(pem){const der=bytesFromPem(pem); const root=readAsn1(der,0); if(root.tag!==0x30||root.children.length<3) throw new Error('CSR structure is invalid.'); const cri=root.children[0], sigAlg=root.children[1]; const subjectNode=cri.children[1], spkiNode=cri.children[2], attrsNode=cri.children[3]; const subject=parseName(subjectNode); const algoSeq=spkiNode.children?.[0]; const pubBit=spkiNode.children?.[1]; const pubAlgoOid=algoSeq?.children?.[0]?decodeOid(algoSeq.children[0].bytes):''; const curveOid=algoSeq?.children?.[1]?decodeOid(algoSeq.children[1].bytes):''; const sigOid=sigAlg.children?.[0]?decodeOid(sigAlg.children[0].bytes):''; const extensions=parseExtensionsFromAttributes(attrsNode); const curveMap={'1.2.840.10045.3.1.7':{name:'secp256r1', bits:256},'1.3.132.0.34':{name:'secp384r1', bits:384},'1.3.132.0.35':{name:'secp521r1', bits:521}}; const curveInfo=curveMap[curveOid]||{name:curveOid||'Unknown', bits:null}; const sigMap={'1.2.840.10045.4.3.2':'ecdsa-with-SHA256','1.2.840.10045.4.3.3':'ecdsa-with-SHA384','1.2.840.10045.4.3.4':'ecdsa-with-SHA512','1.2.840.113549.1.1.11':'sha256WithRSAEncryption'}; const pubMap={'1.2.840.10045.2.1':'id-ecPublicKey','1.2.840.113549.1.1.1':'rsaEncryption'}; const publicKeyHex=pubBit?.bytes?.length?bytesToHex(pubBit.bytes.slice(1)):''; let signatureValid=false; try{const csr=forge.pki.certificationRequestFromPem(pem); signatureValid=csr.verify();}catch{} const md=alg=>formatHexColon(forge.md[alg].create().update(uint8ToBinaryString(der)).digest().toHex()); return {subject,subjectText:Object.entries(subject).map(([k,v])=>`${k}=${v}`).join(', '),keySize:curveInfo.bits,keyAlgorithm:pubMap[pubAlgoOid]||pubAlgoOid||'Unknown',sigAlgorithm:sigMap[sigOid]||sigOid||'Unknown',curveName:curveInfo.name,sans:extensions.sans,keyUsage:extensions.keyUsage,sha256:md('sha256'),sha1:md('sha1'),md5:md('md5'),publicKeyHex,signatureValid,version:'v1'};}
-function csrCheckRows(info){const sigLower=String(info.sigAlgorithm||'').toLowerCase(); const weakSig=sigLower.includes('md5')||sigLower.includes('sha1')||sigLower.includes('sha-1'); return [{check:'Signature',result:info.signatureValid?'Valid signature':'Signature could not be verified',status:info.signatureValid?'pass':'fail'},{check:'Key',result:info.keySize?`${info.keySize}-bit EC`:'Unknown key size',status:info.keySize===384?'pass':info.keySize&&info.keySize>=256?'pass':'fail'},{check:'MD5/SHA1',result:weakSig?'Using weak signature hash':'Not using MD5 or SHA1',status:weakSig?'fail':'pass'},{check:'Debian Weak Key',result:'Key not listed in badkeys blocklist',status:'pass'},{check:'Version',result:'Standard CSR version (v1)',status:info.version==='v1'?'pass':'warning'}];}
-function sanLinks(sans){if(!sans.length) return 'N/A'; return sans.map(v=>{const clean=v.replace(/^DNS:/,''); return v.startsWith('DNS:')?`<a class="csr-link" href="https://${clean}" target="_blank" rel="noopener noreferrer">${clean}</a>`:v;}).join(', ');}
-function renderCsrDecoder(info){const checks=csrCheckRows(info); const allPassed=checks.every(x=>x.status==='pass'); byId('decoderResults').innerHTML=`<div class="result-card"><h3 style="font-size:44px;color:#93c5fd;margin-bottom:18px">CSR Summary</h3><div class="csr-summary"><strong>${allPassed?'CSR status: PASSED':'CSR status: REVIEW NEEDED'}</strong><div style="margin-top:8px">${allPassed?'All CSR checks passed. See individual checks below for details.':'Some CSR checks need attention. Review the table below.'}</div></div></div><div class="result-card"><h3>CSR Checks</h3><table class="csr-table"><thead><tr><th>Check</th><th>Result</th></tr></thead><tbody>${checks.map(r=>`<tr><td>${r.check}</td><td><span class="badge ${r.status}">${r.status==='pass'?'✔ Passed':r.status==='fail'?'✖ Failed':'! Review'}</span> <span style="margin-left:8px">${r.result}</span></td></tr>`).join('')}</tbody></table></div><div class="result-card"><h3>CSR Properties</h3><table class="csr-table"><tbody><tr><th>Subject</th><td>${info.subjectText||'N/A'}</td></tr><tr><th>Key Size</th><td>${info.keySize?`${info.keySize} bits`:'N/A'}</td></tr><tr><th>Key Algorithm</th><td>${info.keyAlgorithm}</td></tr><tr><th>Sig. Algorithm</th><td>${info.sigAlgorithm}</td></tr><tr><th>SHA256 Fingerprint</th><td>${info.sha256}</td></tr><tr><th>SHA1 Fingerprint</th><td>${info.sha1}</td></tr><tr><th>MD5 Fingerprint</th><td>${info.md5}</td></tr><tr><th>SANs</th><td>${info.sans.length?info.sans.join(', '):'N/A'}<div style="margin-top:8px">${sanLinks(info.sans)}</div></td></tr></tbody></table></div>`;}
-function decodeCsrLocal(){decoderHideError(); byId('decoderResults').innerHTML=''; const pem=String(byId('decoderInput').value||'').trim(); if(!pem) return decoderShowError('Please provide a valid CSR in PEM or DER form.'); if(!pem.includes('BEGIN CERTIFICATE REQUEST') && !pem.includes('BEGIN NEW CERTIFICATE REQUEST')) return decoderShowError('This decoder accepts CSR input only.'); try{const info=parseCsrLocal(pem); renderCsrDecoder(info);}catch(e){console.error(e); decoderShowError(`Unable to decode CSR. ${e.message||''}`);}}
-byId('decoderDecodeBtn').addEventListener('click', decodeCsrLocal);
-byId('decoderLoadBtn').addEventListener('click', ()=>byId('decoderFileInput').click());
-byId('decoderExampleBtn').addEventListener('click', ()=>{byId('decoderInput').value=EXAMPLE_ECC_CSR; decoderHideError(); byId('decoderResults').innerHTML='';});
-byId('decoderClearBtn').addEventListener('click', ()=>{byId('decoderInput').value=''; byId('decoderFileMeta').textContent=''; decoderHideError(); byId('decoderResults').innerHTML='';});
-byId('decoderFileInput').addEventListener('change', async e=>{const file=e.target.files?.[0]; if(!file) return; try{const pem=await readCsrFileToPem(file); byId('decoderInput').value=pem; byId('decoderFileMeta').textContent=`Loaded file: ${file.name}`; decoderHideError();}catch(err){decoderShowError(`Could not load file. ${err.message||''}`);}});
+
+let lastDownloads = [];
+let lastAssessment = null;
+let lastFormData = null;
+let flashTimer = null;
+
+function byId(id){ return document.getElementById(id); }
+function qs(sel, parent=document){ return parent.querySelector(sel); }
+function qsa(sel, parent=document){ return Array.from(parent.querySelectorAll(sel)); }
+function normalise(v){ return String(v || '').trim(); }
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showFlash(message, type='ok'){
+  const flash = byId('flash');
+  flash.className = `flash ${type}`;
+  flash.textContent = message;
+  flash.style.display = 'block';
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { flash.style.display = 'none'; }, 2600);
+}
+
+function fillSelect(selectEl, options){
+  selectEl.innerHTML = '';
+  options.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    selectEl.appendChild(o);
+  });
+}
+
+function showTab(tabId){
+  qsa('.tab-panel').forEach(p => p.classList.remove('active'));
+  qsa('.tab-btn').forEach(b => b.classList.remove('active'));
+  byId(tabId).classList.add('active');
+  qsa('.tab-btn').find(b => b.dataset.tab === tabId)?.classList.add('active');
+}
+
+function showSubtab(id){
+  qsa('.subtab-panel').forEach(p => p.classList.remove('active'));
+  qsa('.subtab-btn').forEach(b => b.classList.remove('active'));
+  byId(id).classList.add('active');
+  qsa('.subtab-btn').find(b => b.dataset.subtab === id)?.classList.add('active');
+}
+
+function toggleAcc(btn){
+  const item = btn.closest('.acc-item');
+  item.classList.toggle('open');
+  btn.querySelector('span').textContent = item.classList.contains('open') ? '−' : '+';
+}
+
+function toggleCollapse(btn){
+  const item = btn.closest('.collapsible');
+  item.classList.toggle('open');
+  btn.querySelector('span:last-child').textContent = item.classList.contains('open') ? '−' : '+';
+}
+
+function onPlatformChange(){
+  const platform = byId('platform').value;
+  fillSelect(byId('osName'), OS_OPTIONS[platform]);
+  fillSelect(byId('server'), SERVER_OPTIONS[platform]);
+  onServerChange();
+  syncOutputTabs();
+}
+
+function setHidden(id, hidden){ byId(id).hidden = hidden; }
+
+function onServerChange(){
+  const server = byId('server').value;
+  setHidden('field_iisVersion', server !== 'IIS');
+  setHidden('field_iisMethod', server !== 'IIS');
+  setHidden('field_nginxVersion', server !== 'Nginx');
+  setHidden('field_apacheVersion', !(server === 'Apache' || server === 'XAMPP'));
+  setHidden('field_xamppVersion', server !== 'XAMPP');
+  setHidden('field_phpVersion', server !== 'XAMPP');
+  syncOutputTabs();
+}
+
+function syncOutputTabs(){
+  const platform = byId('platform').value;
+  const server = byId('server').value;
+  const iisMethod = byId('iisMethod').value;
+  const btnLinux = byId('btnOutLinux');
+  const btnPS = byId('btnOutPS');
+  const btnGUI = byId('btnOutGUI');
+
+  if (platform === 'Linux') {
+    btnLinux.style.display = '';
+    btnPS.style.display = 'none';
+    btnGUI.style.display = 'none';
+    showSubtab('out-linux');
+    return;
+  }
+
+  btnLinux.style.display = 'none';
+  if (server === 'IIS') {
+    btnPS.style.display = (iisMethod === 'powershell' || iisMethod === 'both') ? '' : 'none';
+    btnGUI.style.display = (iisMethod === 'gui' || iisMethod === 'both') ? '' : 'none';
+    showSubtab(iisMethod === 'gui' ? 'out-gui' : 'out-ps');
+  } else {
+    btnPS.style.display = '';
+    btnGUI.style.display = 'none';
+    showSubtab('out-ps');
+  }
+}
+
+function parseNums(v){
+  const m = String(v || '').match(/\d+/g);
+  return m ? m.map(n => parseInt(n, 10)) : null;
+}
+
+function compareVersions(a, b){
+  const x = parseNums(a);
+  const y = parseNums(b);
+  if (!x || !y) return null;
+  const len = Math.max(x.length, y.length);
+  for (let i=0; i<len; i++) {
+    const p = x[i] || 0;
+    const q = y[i] || 0;
+    if (p > q) return 1;
+    if (p < q) return -1;
+  }
+  return 0;
+}
+
+function extractWindowsYear(text){
+  const m = String(text || '').match(/(2008|2012|2016|2019|2022|2025)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function extractMajor(text){
+  const m = String(text || '').match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function safeFileBase(cn){
+  const out = String(cn || 'server').trim().replace(/[^a-zA-Z0-9._-]/g, '_');
+  return out || 'server';
+}
+
+function sanitiseSubjectValue(value){
+  return String(value || '').replace(/[\r\n]/g, ' ').replace(/[\\/]/g, '\\$&').trim();
+}
+
+function isValidHostname(host){
+  if (!host || host.length > 253) return false;
+  if (host.startsWith('*.')) host = host.slice(2);
+  return host.split('.').every(part => /^[a-zA-Z0-9-]{1,63}$/.test(part) && !part.startsWith('-') && !part.endsWith('-'));
+}
+
+function isValidIP(ip){
+  return /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ip);
+}
+
+function buildSANList(rawSAN, cn){
+  const input = rawSAN.split(',').map(x => x.trim()).filter(Boolean);
+  const values = [];
+  const seen = new Set();
+  if (cn) input.unshift(cn);
+
+  for (const entry of input) {
+    const lower = entry.toLowerCase();
+    let item = null;
+    if (lower.startsWith('ip:')) {
+      const ip = entry.slice(3).trim();
+      if (isValidIP(ip)) item = { type: 'IP', value: ip };
+    } else {
+      const host = entry.trim();
+      if (isValidHostname(host)) item = { type: 'DNS', value: host };
+    }
+    if (!item) continue;
+    const key = `${item.type}:${item.value.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    values.push(item);
+  }
+  return values;
+}
+
+function subjectLine(data){
+  const parts = [
+    `CN=${sanitiseSubjectValue(data.cn)}`,
+    `O=${sanitiseSubjectValue(data.org)}`,
+    `OU=${sanitiseSubjectValue(data.ou)}`,
+    `L=${sanitiseSubjectValue(data.city)}`,
+    `S=${sanitiseSubjectValue(data.state)}`,
+    `C=${sanitiseSubjectValue(data.country)}`
+  ];
+  if (data.email) parts.push(`E=${sanitiseSubjectValue(data.email)}`);
+  return parts.join(', ');
+}
+
+function escapePS(text){ return String(text || '').replace(/`/g, '``'); }
+
+function readForm(){
+  const data = {
+    platform: normalise(byId('platform').value),
+    osName: normalise(byId('osName').value),
+    osVersion: normalise(byId('osVersion').value),
+    server: normalise(byId('server').value),
+    iisVersion: normalise(byId('iisVersion').value),
+    iisMethod: normalise(byId('iisMethod').value),
+    nginxVersion: normalise(byId('nginxVersion').value),
+    apacheVersion: normalise(byId('apacheVersion').value),
+    xamppVersion: normalise(byId('xamppVersion').value),
+    phpVersion: normalise(byId('phpVersion').value),
+    opensslVersion: normalise(byId('opensslVersion').value),
+    opensshVersion: normalise(byId('opensshVersion').value),
+    cn: normalise(byId('cn').value),
+    san: normalise(byId('san').value),
+    org: normalise(byId('org').value),
+    ou: normalise(byId('ou').value),
+    city: normalise(byId('city').value),
+    state: normalise(byId('state').value),
+    country: normalise(byId('country').value).toUpperCase(),
+    email: normalise(byId('email').value)
+  };
+  data.sans = buildSANList(data.san, data.cn);
+  data.fileBase = safeFileBase(data.cn);
+  return data;
+}
+
+function validateEmail(email){
+  return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validate(data){
+  const missing = [];
+  if (!data.cn) missing.push('CN');
+  if (!data.org) missing.push('O');
+  if (!data.ou) missing.push('OU');
+  if (!data.city) missing.push('L');
+  if (!data.state) missing.push('ST');
+  if (!data.country || data.country.length !== 2) missing.push('C');
+
+  const errors = [];
+  if (missing.length) errors.push(`Please complete these required fields: ${missing.join(', ')}`);
+  if (data.country && !KB.countryCodes.has(data.country)) errors.push('Country must be a valid 2-letter ISO code.');
+  if (!validateEmail(data.email)) errors.push('Email format looks invalid.');
+  if (!isValidHostname(data.cn)) errors.push('CN must be a valid DNS name.');
+  if (data.sans.length === 0) errors.push('At least one valid SAN entry is required.');
+  return errors;
+}
+
+function sanOpenSslParts(sans){
+  return sans.map(item => `${item.type}:${item.value}`).join(',');
+}
+
+function sanInfLines(sans){
+  const values = sans.map(item => `${item.type}=${item.value}`);
+  if (!values.length) return '_continue_ = "DNS=invalid.local"';
+  return values.map((v, i) => `_continue_ = "${v}${i < values.length - 1 ? '&' : ''}"`).join('\n');
+}
+
+function buildLinuxScript(data){
+  const keyFile = `${data.fileBase}.key`;
+  const csrFile = `${data.fileBase}.csr`;
+  const confFile = `${data.fileBase}-csr.conf`;
+  let installHint = '';
+
+  if (data.server === 'Nginx') {
+    installHint = `# Nginx reminder\n# ssl_certificate     /path/to/fullchain.pem;\n# ssl_certificate_key /path/to/${keyFile};`;
+  } else if (data.server === 'Apache') {
+    installHint = `# Apache reminder\n# SSLCertificateFile    "/path/to/cert.pem"\n# SSLCertificateKeyFile "/path/to/${keyFile}"`;
+  }
+
+  return `# Linux ECC CSR generation\n# ECC curve: secp384r1 (P-384)\n# Hash: SHA-256\n# Expected CSR signature: ecdsa-with-SHA384 or ecdsa-with-SHA256 depending on toolkit display\n\nset -euo pipefail\n\nKEY_FILE="${keyFile}"\nCSR_FILE="${csrFile}"\nCONF_FILE="${confFile}"\n\ncat > "$CONF_FILE" <<'EOF'\n[ req ]\ndefault_md = sha256\nprompt = no\ndistinguished_name = dn\nreq_extensions = req_ext\n\n[ dn ]\nC = ${sanitiseSubjectValue(data.country)}\nST = ${sanitiseSubjectValue(data.state)}\nL = ${sanitiseSubjectValue(data.city)}\nO = ${sanitiseSubjectValue(data.org)}\nOU = ${sanitiseSubjectValue(data.ou)}\nCN = ${sanitiseSubjectValue(data.cn)}${data.email ? `\nemailAddress = ${sanitiseSubjectValue(data.email)}` : ''}\n\n[ req_ext ]\nsubjectAltName = ${sanOpenSslParts(data.sans)}\nkeyUsage = critical,digitalSignature,keyAgreement\nEOF\n\nopenssl ecparam -name secp384r1 -genkey -noout -out "$KEY_FILE"\nopenssl req -new -sha256 -key "$KEY_FILE" -out "$CSR_FILE" -config "$CONF_FILE"\nopenssl req -in "$CSR_FILE" -noout -text\n\n${installHint}`;
+}
+
+function buildWindowsINF(data){
+  return `[Version]\nSignature="$Windows NT$"\n\n[NewRequest]\nSubject = "${subjectLine(data)}"\nMachineKeySet = TRUE\nExportable = FALSE\nRequestType = PKCS10\nKeyAlgorithm = ECDSA_P384\nKeyLength = 384\nHashAlgorithm = SHA256\nProviderName = "Microsoft Software Key Storage Provider"\nKeyUsage = 0x80\n\n[Extensions]\n2.5.29.17 = "{text}"\n${sanInfLines(data.sans)}\n\n[EnhancedKeyUsageExtension]\nOID=1.3.6.1.5.5.7.3.1\n`;
+}
+
+function buildWindowsPowerShell(data){
+  const infName = `${data.fileBase}-request.inf`;
+  const reqName = `${data.fileBase}-request.req`;
+  const inf = buildWindowsINF(data);
+  return `# Windows PowerShell ECC CSR generation\n# ECC curve: P-384\n# Hash: SHA-256\n# Uses certreq and Microsoft Software Key Storage Provider\n\n$InfPath = Join-Path (Get-Location) "${infName}"\n$ReqPath = Join-Path (Get-Location) "${reqName}"\n\n$InfContent = @"\n${escapePS(inf)}\n"@\n\nSet-Content -Path $InfPath -Value $InfContent -Encoding ascii\nWrite-Host "Generating ECC CSR request..." -ForegroundColor Cyan\ncertreq -new $InfPath $ReqPath\nWrite-Host ""\nWrite-Host "Request file created:" $ReqPath -ForegroundColor Green\nWrite-Host "Next steps:"\nWrite-Host "1. Submit the original .req file to the CA portal"\nWrite-Host "2. When the certificate is issued, accept it with:"\nWrite-Host "   certreq -accept .\\issued.cer"\nWrite-Host "3. Keep the private key inside the Windows certificate store"`;
+}
+
+function buildWindowsGUIGuidance(data){
+  return `# IIS GUI guidance\n# Target profile:\n# - Provider: Microsoft Software Key Storage Provider\n# - Bit Length: 384\n# - ECC / ECDSA\n\n1. Open IIS Manager\n2. Select the server node\n3. Open Server Certificates\n4. Choose Create Certificate Request\n5. Fill in:\n   - CN = ${data.cn}\n   - O  = ${data.org}\n   - OU = ${data.ou}\n   - L  = ${data.city}\n   - ST = ${data.state}\n   - C  = ${data.country}\n6. Under Cryptographic Service Provider:\n   - Provider: Microsoft Software Key Storage Provider\n   - Bit Length: 384\n7. Save the CSR\n8. Verify the CSR after generation\n\nNote:\nIf SAN must be embedded in the request itself, PowerShell + certreq is the cleaner path.`;
+}
+
+function assess(data){
+  const table = [];
+  const issues = [];
+  let score = 100;
+  const add = (item, detected, rule, status, explanation='') => {
+    table.push({ item, detected, rule, status, explanation });
+    if (status === 'Warning') score -= 10;
+    if (status === 'Fail') score -= 25;
+    if (status !== 'OK' && explanation) issues.push({ status, text: explanation });
+  };
+
+  add('CSR policy', 'ECC P-384 / SHA-256', 'ECC only', 'OK');
+
+  if (data.sans.length === 0) add('SAN', 'None', 'At least one valid SAN', 'Fail', 'SAN is missing or invalid. Add valid DNS or IP entries.');
+  else add('SAN', data.sans.map(x => `${x.type}:${x.value}`).join(', '), 'At least one valid SAN', 'OK');
+
+  if (data.opensslVersion) {
+    const c = compareVersions(data.opensslVersion, KB.baselines.opensslMin);
+    if (c === null) add('OpenSSL', data.opensslVersion, `>= ${KB.baselines.opensslMin}`, 'Warning', 'OpenSSL version could not be parsed clearly.');
+    else if (c < 0) add('OpenSSL', data.opensslVersion, `>= ${KB.baselines.opensslMin}`, 'Fail', `OpenSSL appears below ${KB.baselines.opensslMin}.`);
+    else add('OpenSSL', data.opensslVersion, `>= ${KB.baselines.opensslMin}`, 'OK');
+  } else add('OpenSSL', 'Not provided', `>= ${KB.baselines.opensslMin}`, 'Warning', 'OpenSSL version not provided.');
+
+  if (data.opensshVersion) {
+    const c = compareVersions(data.opensshVersion, KB.baselines.opensshMin);
+    if (c === null) add('OpenSSH', data.opensshVersion, `>= ${KB.baselines.opensshMin}`, 'Warning', 'OpenSSH version could not be parsed clearly.');
+    else if (c < 0) add('OpenSSH', data.opensshVersion, `>= ${KB.baselines.opensshMin}`, 'Fail', `OpenSSH appears below ${KB.baselines.opensshMin}.`);
+    else add('OpenSSH', data.opensshVersion, `>= ${KB.baselines.opensshMin}`, 'OK');
+  } else {
+    add('OpenSSH', 'Not provided', `>= ${KB.baselines.opensshMin}`, 'Unknown');
+    score -= 3;
+  }
+
+  if (data.platform === 'Windows') {
+    const year = extractWindowsYear(data.osVersion) || extractMajor(data.osVersion);
+    if (year === null) add('Windows OS', data.osVersion || 'Not provided', `>= ${KB.baselines.windowsMinYear}`, 'Warning', 'Windows version could not be parsed.');
+    else if (year < KB.baselines.windowsMinYear) add('Windows OS', String(year), `>= ${KB.baselines.windowsMinYear}`, 'Fail', `Windows appears below Server ${KB.baselines.windowsMinYear}.`);
+    else add('Windows OS', String(year), `>= ${KB.baselines.windowsMinYear}`, 'OK');
+
+    if (data.server === 'IIS') {
+      if (data.iisVersion) {
+        const c = compareVersions(data.iisVersion, KB.baselines.iisMinMajor);
+        if (c === null) add('IIS', data.iisVersion, `>= ${KB.baselines.iisMinMajor}`, 'Warning', 'IIS version could not be parsed clearly.');
+        else if (c < 0) add('IIS', data.iisVersion, `>= ${KB.baselines.iisMinMajor}`, 'Fail', `IIS appears below ${KB.baselines.iisMinMajor}.`);
+        else add('IIS', data.iisVersion, `>= ${KB.baselines.iisMinMajor}`, 'OK');
+      } else add('IIS', 'Not provided', `>= ${KB.baselines.iisMinMajor}`, 'Warning', 'IIS version not provided.');
+    }
+  }
+
+  if (data.platform === 'Linux' && data.osName === 'CentOS') {
+    const major = extractMajor(data.osVersion);
+    if (major === null) add('CentOS', data.osVersion || 'Not provided', `>= ${KB.baselines.linuxCentOSMin}`, 'Warning', 'CentOS version could not be parsed.');
+    else if (major < KB.baselines.linuxCentOSMin) add('CentOS', String(major), `>= ${KB.baselines.linuxCentOSMin}`, 'Fail', `CentOS appears below ${KB.baselines.linuxCentOSMin}.`);
+    else add('CentOS', String(major), `>= ${KB.baselines.linuxCentOSMin}`, 'OK');
+  }
+
+  if (data.server === 'Apache' || data.server === 'XAMPP') {
+    if (data.apacheVersion) {
+      const c = compareVersions(data.apacheVersion, KB.baselines.apacheMin);
+      if (c === null) add('Apache', data.apacheVersion, `>= ${KB.baselines.apacheMin}`, 'Warning', 'Apache version could not be parsed clearly.');
+      else if (c < 0) add('Apache', data.apacheVersion, `>= ${KB.baselines.apacheMin}`, 'Fail', `Apache appears below ${KB.baselines.apacheMin}.`);
+      else add('Apache', data.apacheVersion, `>= ${KB.baselines.apacheMin}`, 'OK');
+    } else add('Apache', 'Not provided', `>= ${KB.baselines.apacheMin}`, 'Warning', 'Apache version not provided.');
+  }
+
+  if (data.server === 'XAMPP') {
+    if (data.xamppVersion) {
+      const c = compareVersions(data.xamppVersion, KB.baselines.xamppMin);
+      if (c === null) add('XAMPP', data.xamppVersion, `>= ${KB.baselines.xamppMin}`, 'Warning', 'XAMPP version could not be parsed clearly.');
+      else if (c < 0) add('XAMPP', data.xamppVersion, `>= ${KB.baselines.xamppMin}`, 'Fail', `XAMPP appears below ${KB.baselines.xamppMin}.`);
+      else add('XAMPP', data.xamppVersion, `>= ${KB.baselines.xamppMin}`, 'OK');
+    } else add('XAMPP', 'Not provided', `>= ${KB.baselines.xamppMin}`, 'Warning', 'XAMPP version not provided.');
+
+    if (data.phpVersion) {
+      const c = compareVersions(data.phpVersion, KB.baselines.phpMin);
+      if (c === null) add('PHP', data.phpVersion, `>= ${KB.baselines.phpMin}`, 'Warning', 'PHP version could not be parsed clearly.');
+      else if (c < 0) add('PHP', data.phpVersion, `>= ${KB.baselines.phpMin}`, 'Fail', `PHP appears below ${KB.baselines.phpMin}.`);
+      else add('PHP', data.phpVersion, `>= ${KB.baselines.phpMin}`, 'OK');
+    } else add('PHP', 'Not provided', `>= ${KB.baselines.phpMin}`, 'Warning', 'PHP version not provided.');
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  return {
+    score,
+    table,
+    issues,
+    okCount: table.filter(x => x.status === 'OK').length,
+    warnCount: table.filter(x => x.status === 'Warning').length,
+    failCount: table.filter(x => x.status === 'Fail').length
+  };
+}
+
+function buildDownloads(data){
+  const files = [];
+  const linux = buildLinuxScript(data);
+  const ps = buildWindowsPowerShell(data);
+  const gui = buildWindowsGUIGuidance(data);
+  const inf = buildWindowsINF(data);
+
+  if (data.platform === 'Linux') files.push({ filename: `${data.fileBase}-linux-openssl.sh`, content: linux });
+  else {
+    files.push({ filename: `${data.fileBase}-windows-certreq.ps1`, content: ps });
+    files.push({ filename: `${data.fileBase}-request.inf`, content: inf });
+    if (data.server === 'IIS') files.push({ filename: `${data.fileBase}-windows-gui.txt`, content: gui });
+  }
+  return files;
+}
+
+function statusBadge(status){
+  if (status === 'OK') return '<span class="badge ok">OK</span>';
+  if (status === 'Warning') return '<span class="badge warn">Warning</span>';
+  if (status === 'Fail') return '<span class="badge bad">Fail</span>';
+  return '<span class="badge unk">Unknown</span>';
+}
+
+function recommendedPath(data){
+  if (data.platform === 'Linux') return 'Use the Linux OpenSSL tab and run it on the target server or approved admin workstation.';
+  if (data.server === 'IIS') {
+    if (data.iisMethod === 'gui') return 'Use the Windows IIS GUI tab.';
+    if (data.iisMethod === 'powershell') return 'Use the Windows PowerShell tab.';
+    return 'Use Windows PowerShell for scripted generation, then cross-check with the IIS GUI tab.';
+  }
+  return 'Use the Windows PowerShell tab.';
+}
+
+function renderReadinessSummary(data, result){
+  const box = byId('readinessSummary');
+  box.style.display = '';
+  let overall = 'Ready with standard caution';
+  let nextAction = 'Proceed with ECC CSR generation on the target host and submit the original request file.';
+  let panelClass = 'ok';
+
+  if (result.failCount > 0) {
+    overall = 'Not ready for submission';
+    nextAction = 'Address the failed baseline items first, then regenerate the request.';
+    panelClass = 'bad';
+  } else if (result.warnCount > 0) {
+    overall = 'Conditionally ready';
+    nextAction = 'Proceed only after reviewing the warning items and confirming the target stack supports ECC P-384.';
+    panelClass = 'warn';
+  }
+
+  const topConcerns = result.issues.slice(0, 4).map(x => `<li>${escapeHtml(x.text)}</li>`).join('') || '<li>No major concern recorded.</li>';
+  const snapshot = [
+    `${data.platform} / ${data.osName} ${data.osVersion || '(version not provided)'}`,
+    `${data.server}${data.iisVersion ? ` ${data.iisVersion}` : ''}`,
+    `${data.opensslVersion ? `OpenSSL ${data.opensslVersion}` : 'OpenSSL not provided'}`,
+    `${data.cn ? `CN ${data.cn}` : ''}`
+  ].filter(Boolean).map(x => `<li>${escapeHtml(x)}</li>`).join('');
+
+  box.innerHTML = `
+    <div class="readiness-top">
+      <div>
+        <div class="readiness-title">Readiness Summary</div>
+        <div class="panel ${panelClass}" style="margin-top:0;">
+          <strong>${escapeHtml(overall)}</strong>
+          Health score: ${result.score}/100
+        </div>
+      </div>
+      <div class="readiness-score"><div class="big">${result.score}</div><div class="hint">overall score</div></div>
+    </div>
+    <div class="readiness-grid">
+      <div class="readiness-box"><h4>Environment snapshot</h4><ul>${snapshot}</ul></div>
+      <div class="readiness-box"><h4>Immediate next action</h4><div>${escapeHtml(nextAction)}</div></div>
+      <div class="readiness-box"><h4>Primary concerns</h4><ul>${topConcerns}</ul></div>
+      <div class="readiness-box"><h4>Recommended output path</h4><div>${escapeHtml(recommendedPath(data))}</div></div>
+    </div>`;
+}
+
+function renderOperatorChecklist(data){
+  byId('operatorChecklist').style.display = '';
+  const sanText = data.sans.map(x => `${x.type}:${x.value}`).join(', ');
+  const beforeSubmit = [
+    'Confirm target profile is ECC P-384 with SHA-256.',
+    'Generate the request on the target server or approved admin workstation.',
+    'Keep the private key under agency control. Do not export or share it unless there is an approved process.',
+    'Use the original request file for submission.',
+    `Confirm CN is correct: ${data.cn}.`,
+    `Confirm SAN list is complete: ${sanText}.`,
+    'Verify the server stack entered in the form matches the actual target environment.',
+    'Review all warning and failed checks before proceeding.'
+  ];
+  const afterIssuance = [
+    'Match the issued certificate against CN and SAN values requested.',
+    'Confirm the certificate algorithm and chain are what the service expects.',
+    'For Windows, accept or import the issued certificate using the correct certificate store workflow.',
+    'For Linux, store certificate files in the approved path with suitable file permissions.',
+    'Retain the issued certificate, chain, and request artifacts in the service record.'
+  ];
+  const beforeBinding = [
+    data.platform === 'Windows' ? 'Confirm IIS version and Windows Server version are suitable for ECC deployment.' : 'Confirm OpenSSL and web server versions are suitable for ECC deployment.',
+    data.server === 'IIS' ? 'Confirm the certificate is visible in the Windows certificate store before binding in IIS.' : 'Confirm certificate and private key file paths are correct in the service configuration.',
+    data.server === 'Nginx' ? 'Validate Nginx configuration and reload safely after updating ssl_certificate and ssl_certificate_key.' : 'Review service configuration one final time before restart or reload.',
+    data.server === 'Apache' ? 'Validate Apache SSL virtual host configuration before reload.' : 'Test the service after binding and verify HTTPS comes up with the correct certificate.',
+    'Confirm downstream applications, proxies, or clients support ECC certificates.'
+  ];
+  const evidence = [
+    'Date and time of CSR generation.', 'Operator name or team handling the request.', `Target hostname(s): ${sanText}.`,
+    'Server stack recorded in this form.', 'Issued certificate file name and chain file name.', 'Change record or ticket reference.',
+    'Verification note confirming successful binding and HTTPS validation.'
+  ];
+  byId('checkBeforeSubmit').innerHTML = beforeSubmit.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  byId('checkAfterIssuance').innerHTML = afterIssuance.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  byId('checkBeforeBinding').innerHTML = beforeBinding.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  byId('checkEvidence').innerHTML = evidence.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+}
+
+function renderPostDeploymentChecklist(data){
+  byId('postDeployChecklist').style.display = '';
+  const sanText = data.sans.map(x => `${x.type}:${x.value}`).join(', ');
+  const immediate = [
+    'Open the site in a browser and verify HTTPS loads without certificate warning.',
+    'Confirm the browser shows the new certificate and not the previous one.',
+    `Verify the certificate subject and SAN include: ${sanText}.`,
+    'Confirm the certificate validity dates match the newly issued certificate.'
+  ];
+  const certChain = [
+    'Check that the full certificate chain is presented correctly.',
+    'Confirm the issuing CA and intermediate chain are the expected ones.',
+    'Verify the certificate algorithm is ECC / ECDSA and the service is not presenting a different fallback certificate.',
+    'Use command-line or browser inspection to confirm the live chain is complete.'
+  ];
+  const serviceSpecific = [];
+  if (data.server === 'IIS') {
+    serviceSpecific.push('Confirm the correct certificate binding is attached to the intended IIS site and port.');
+    serviceSpecific.push('Review IIS HTTPS bindings and ensure no old binding remains active on the same endpoint.');
+  } else if (data.server === 'Nginx') {
+    serviceSpecific.push('Run a configuration test before reload if not already done.');
+    serviceSpecific.push('Confirm Nginx is using the intended certificate and private key paths.');
+  } else if (data.server === 'Apache') {
+    serviceSpecific.push('Validate Apache SSL virtual host configuration.');
+    serviceSpecific.push('Confirm the active vhost is serving the intended certificate file and key file.');
+  } else {
+    serviceSpecific.push('Confirm the service configuration now points to the new certificate material.');
+    serviceSpecific.push('Verify the running service has been reloaded or restarted cleanly.');
+  }
+  serviceSpecific.push('Confirm clients and upstream/downstream systems can still connect successfully after the change.');
+  const closeOut = [
+    'Record the deployment date and time.', 'Record the certificate serial number or identifying reference.',
+    'Capture validation evidence such as screenshot, browser certificate view, or command output.',
+    'Close the ticket or update the change record only after successful validation.',
+    'Retain rollback notes if the old certificate must remain available for contingency handling.'
+  ];
+  byId('checkImmediateValidation').innerHTML = immediate.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  byId('checkCertChain').innerHTML = certChain.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  byId('checkServiceSpecific').innerHTML = serviceSpecific.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+  byId('checkCloseOut').innerHTML = closeOut.map(x => `<li>${escapeHtml(x)}</li>`).join('');
+}
+
+function renderAssessment(result){
+  let panelClass = 'ok';
+  let panelTitle = 'No major baseline failure detected';
+  if (result.failCount > 0) { panelClass = 'bad'; panelTitle = 'Baseline failures detected'; }
+  else if (result.warnCount > 0) { panelClass = 'warn'; panelTitle = 'Warnings detected'; }
+
+  const issuesHTML = result.issues.length ? `<ul>${result.issues.map(x => `<li>${escapeHtml(x.text)}</li>`).join('')}</ul>` : `<div>No warning currently triggered.</div>`;
+  const statusGrid = result.table.map(r => {
+    let cardClass = 'unknown';
+    if (r.status === 'OK') cardClass = 'pass';
+    else if (r.status === 'Warning') cardClass = 'warn';
+    else if (r.status === 'Fail') cardClass = 'fail';
+    return `
+      <div class="status-item ${cardClass}">
+        <div class="status-top"><strong>${escapeHtml(r.item)}</strong>${statusBadge(r.status)}</div>
+        <div><strong>Detected:</strong> ${escapeHtml(r.detected)}</div>
+        <div class="status-rule"><strong>Rule:</strong> ${escapeHtml(r.rule)}</div>
+        ${r.explanation ? `<div class="hint" style="margin-top:6px;">${escapeHtml(r.explanation)}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  byId('resultArea').innerHTML = `
+    <div class="panel ${panelClass}"><strong>${escapeHtml(panelTitle)}</strong>${issuesHTML}</div>
+    <div class="summary-box">
+      <div class="mini pass"><div class="n">${result.okCount}</div><div class="t">Checks passed</div></div>
+      <div class="mini warn"><div class="n">${result.warnCount}</div><div class="t">Warnings</div></div>
+      <div class="mini fail"><div class="n">${result.failCount}</div><div class="t">Failures</div></div>
+    </div>
+    <div class="section-title" style="margin-top:16px;">Check details</div>
+    <div class="status-grid">${statusGrid}</div>`;
+}
+
+function updateScore(result){
+  lastAssessment = result;
+  byId('scoreNumber').textContent = result.score;
+  byId('scoreBar').style.width = `${result.score}%`;
+  let posture = 'Healthy baseline';
+  if (result.failCount > 0) posture = 'Needs remediation';
+  else if (result.warnCount > 0) posture = 'Proceed with care';
+  byId('scoreSub').textContent = `${posture} • ${result.okCount} passed, ${result.warnCount} warnings, ${result.failCount} failures`;
+  const pills = [];
+  if (result.failCount > 0) pills.push(`<div class="pill">Failures: ${result.failCount}</div>`);
+  if (result.warnCount > 0) pills.push(`<div class="pill">Warnings: ${result.warnCount}</div>`);
+  if (result.okCount > 0) pills.push(`<div class="pill">Passed: ${result.okCount}</div>`);
+  if (!pills.length) pills.push('<div class="pill">No result yet</div>');
+  byId('quickPills').innerHTML = pills.join('');
+}
+
+function generateAll(){
+  const data = readForm();
+  const errors = validate(data);
+  if (errors.length) {
+    showFlash(errors[0], 'bad');
+    showTab('tab-cert');
+    return;
+  }
+  lastFormData = data;
+  byId('outputLinux').value = buildLinuxScript(data);
+  byId('outputPS').value = buildWindowsPowerShell(data);
+  byId('outputGUI').value = buildWindowsGUIGuidance(data);
+  const result = assess(data);
+  renderReadinessSummary(data, result);
+  renderOperatorChecklist(data);
+  renderPostDeploymentChecklist(data);
+  renderAssessment(result);
+  updateScore(result);
+  lastDownloads = buildDownloads(data);
+  syncOutputTabs();
+  showTab('tab-output');
+  showFlash('ECC CSR scripts and checks were generated.', 'ok');
+}
+
+function getActiveOutputArea(){
+  if (byId('out-linux').classList.contains('active')) return byId('outputLinux');
+  if (byId('out-ps').classList.contains('active')) return byId('outputPS');
+  return byId('outputGUI');
+}
+
+async function copyActiveOutput(){
+  const area = getActiveOutputArea();
+  if (!area.value.trim()) {
+    showFlash('Nothing to copy yet. Generate first.', 'warn');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(area.value);
+    showFlash('Active output copied.', 'ok');
+  } catch (e) {
+    area.select();
+    showFlash('Clipboard access was blocked. Please copy manually.', 'warn');
+  }
+}
+
+function downloadText(filename, content){
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadFiles(){
+  if (!lastDownloads.length) {
+    showFlash('Nothing to download yet. Generate first.', 'warn');
+    return;
+  }
+  lastDownloads.forEach(file => downloadText(file.filename, file.content));
+  showFlash('Download started.', 'ok');
+}
+
+const pemInput = byId('pemInput');
+const fileInput = byId('fileInput');
+const errorBox = byId('errorBox');
+const results = byId('results');
+
+function showDecoderError(msg){ errorBox.style.display = 'block'; errorBox.textContent = msg; }
+function hideDecoderError(){ errorBox.style.display = 'none'; errorBox.textContent = ''; }
+function updateDecoderClearButton(){ byId('clearBtn').style.display = pemInput.value.trim() ? 'inline-block' : 'none'; }
+
+function normalisePem(pem){ return String(pem || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim(); }
+function detectPemType(pem){
+  if (pem.includes('-----BEGIN CERTIFICATE REQUEST-----') || pem.includes('-----BEGIN NEW CERTIFICATE REQUEST-----')) return 'csr';
+  if (pem.includes('-----BEGIN CERTIFICATE-----')) return 'cert';
+  return 'unknown';
+}
+
+function uint8ToBinaryString(bytes){
+  let out = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) out += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return out;
+}
+
+function wrapPem(label, bytesBinary){
+  const b64 = forge.util.encode64(bytesBinary);
+  const lines = b64.match(/.{1,64}/g) || [];
+  return `-----BEGIN ${label}-----\n${lines.join('\n')}\n-----END ${label}-----`;
+}
+async function readFileToPem(file){
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let text = '';
+  try { text = new TextDecoder().decode(bytes).trim(); } catch (e) { text = ''; }
+  if (text.includes('-----BEGIN')) return text;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const binary = uint8ToBinaryString(bytes);
+  if (ext === 'csr' || ext === 'req' || ext === 'der') return wrapPem('CERTIFICATE REQUEST', binary);
+  if (text) return text;
+  throw new Error('Unsupported or unreadable CSR file');
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(String(text || '')).then(() => showFlash('Copied to clipboard.', 'ok')).catch(() => showFlash('Clipboard access was blocked.', 'warn'));
+}
+
+function decoderKv(label, value, copyable=false){
+  const safeValue = value === undefined || value === null || value === '' ? 'N/A' : String(value);
+  return `
+    <div class="decoder-kv">
+      <div class="decoder-kv-label">${escapeHtml(label)}</div>
+      <div class="decoder-value-row">
+        <div class="decoder-kv-value">${escapeHtml(safeValue)}</div>
+        ${copyable ? `<button class="decoder-copy-btn" data-copy="${escapeHtml(safeValue)}" type="button">Copy</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function decoderKvHtml(label, html){
+  return `
+    <div class="decoder-kv">
+      <div class="decoder-kv-label">${escapeHtml(label)}</div>
+      <div class="decoder-kv-value">${html}</div>
+    </div>`;
+}
+
+function decoderKvCode(label, value, copyable=false){
+  const safeValue = value === undefined || value === null || value === '' ? 'N/A' : String(value);
+  return `
+    <div class="decoder-kv">
+      <div class="decoder-kv-label">${escapeHtml(label)}</div>
+      <div class="decoder-value-row">
+        <div class="decoder-kv-value"><code>${escapeHtml(safeValue)}</code></div>
+        ${copyable ? `<button class="decoder-copy-btn" data-copy="${escapeHtml(safeValue)}" type="button">Copy</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function decoderLongValueSection(title, value){
+  if (!value) return '';
+  return `
+    <div class="decoder-kv">
+      <div class="decoder-kv-label">${escapeHtml(title)}</div>
+      <details class="decoder-long"><summary>Show value</summary><pre class="decoder-raw">${escapeHtml(String(value))}</pre></details>
+    </div>`;
+}
+
+function decoderSection(title, bodyHtml, collapsed=false){
+  return `
+    <div class="decoder-section ${collapsed ? 'collapsed' : ''}">
+      <button class="decoder-section-head" type="button"><span>${escapeHtml(title)}</span><span>${collapsed ? '+' : '−'}</span></button>
+      <div class="decoder-section-body">${bodyHtml}</div>
+    </div>`;
+}
+
+function getDNValue(subject, type){ return subject[type] || 'N/A'; }
+
+function oidLabel(oid){
+  const map = {
+    '1.2.840.113549.1.1.11': 'sha256WithRSAEncryption',
+    '1.2.840.10045.4.3.2': 'ecdsa-with-SHA256',
+    '1.2.840.10045.4.3.3': 'ecdsa-with-SHA384',
+    '1.2.840.10045.4.3.4': 'ecdsa-with-SHA512',
+    '1.2.840.10045.2.1': 'id-ecPublicKey',
+    '1.3.132.0.34': 'secp384r1',
+    '2.5.4.3': 'CN',
+    '2.5.4.6': 'C',
+    '2.5.4.7': 'L',
+    '2.5.4.8': 'ST',
+    '2.5.4.10': 'O',
+    '2.5.4.11': 'OU',
+    '1.2.840.113549.1.9.1': 'emailAddress',
+    '1.2.840.113549.1.9.14': 'extensionRequest',
+    '2.5.29.17': 'subjectAltName',
+    '2.5.29.15': 'keyUsage'
+  };
+  return map[oid] || oid || 'Unknown';
+}
+
+function bytesFromPem(pem){
+  const clean = normalisePem(pem);
+  const b64 = clean.replace(/-----BEGIN [^-]+-----/g, '').replace(/-----END [^-]+-----/g, '').replace(/\s+/g, '');
+  if (!b64) throw new Error('Empty PEM body');
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function bytesToHex(bytes){ return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(''); }
+function formatHexColon(hex){ return String(hex || '').match(/.{1,2}/g)?.join(':') || ''; }
+
+function decodeOid(bytes){
+  if (!bytes || !bytes.length) return '';
+  const first = bytes[0];
+  const parts = [Math.floor(first / 40), first % 40];
+  let value = 0;
+  for (let i = 1; i < bytes.length; i++) {
+    value = (value << 7) | (bytes[i] & 0x7f);
+    if (!(bytes[i] & 0x80)) {
+      parts.push(value);
+      value = 0;
+    }
+  }
+  return parts.join('.');
+}
+
+function decodeString(tag, bytes){
+  if (!bytes) return '';
+  if (tag === 0x1e) {
+    let out = '';
+    for (let i = 0; i + 1 < bytes.length; i += 2) out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
+    return out;
+  }
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function readAsn1(bytes, offset=0){
+  const tag = bytes[offset];
+  let lenByte = bytes[offset + 1];
+  let length = 0;
+  let header = 2;
+  if (lenByte < 0x80) {
+    length = lenByte;
+  } else {
+    const n = lenByte & 0x7f;
+    header = 2 + n;
+    for (let i = 0; i < n; i++) length = (length << 8) | bytes[offset + 2 + i];
+  }
+  const start = offset + header;
+  const end = start + length;
+  const node = { tag, length, header, start, end, bytes: bytes.slice(start, end), children: [] };
+  const constructed = (tag & 0x20) === 0x20 || tag === 0x30 || tag === 0x31 || tag === 0xa0;
+  if (constructed) {
+    let ptr = start;
+    while (ptr < end) {
+      const child = readAsn1(bytes, ptr);
+      node.children.push(child);
+      ptr = child.end;
+    }
+  }
+  return node;
+}
+
+function parseName(node){
+  const out = {};
+  (node.children || []).forEach(setNode => {
+    (setNode.children || []).forEach(seqNode => {
+      const oidNode = seqNode.children?.[0];
+      const valNode = seqNode.children?.[1];
+      if (!oidNode || !valNode) return;
+      const oid = decodeOid(oidNode.bytes);
+      const short = oidLabel(oid);
+      out[short] = decodeString(valNode.tag, valNode.bytes);
+    });
+  });
+  return out;
+}
+
+function parseGeneralNames(bytes){
+  const root = readAsn1(bytes, 0);
+  const out = [];
+  (root.children || []).forEach(child => {
+    const tag = child.tag;
+    const val = decodeString(0x16, child.bytes);
+    if (tag === 0x82) out.push(`DNS:${val}`);
+    else if (tag === 0x87) out.push(`IP:${Array.from(child.bytes).join('.')}`);
+    else if (tag === 0x81) out.push(`email:${val}`);
+  });
+  return out;
+}
+
+function parseKeyUsage(bytes){
+  const bitString = readAsn1(bytes, 0);
+  const data = bitString.bytes;
+  if (!data.length) return [];
+  const unused = data[0];
+  const bits = [];
+  for (let i = 1; i < data.length; i++) {
+    for (let bit = 7; bit >= 0; bit--) bits.push((data[i] >> bit) & 1);
+  }
+  if (unused) bits.length -= unused;
+  const labels = ['digitalSignature','nonRepudiation','keyEncipherment','dataEncipherment','keyAgreement','keyCertSign','cRLSign','encipherOnly','decipherOnly'];
+  return labels.filter((_, i) => bits[i]);
+}
+
+function parseExtensionsFromAttributes(attrNode){
+  const out = { sans: [], keyUsage: [] };
+  if (!attrNode) return out;
+  (attrNode.children || []).forEach(attr => {
+    const oidNode = attr.children?.[0];
+    const valsNode = attr.children?.[1];
+    if (!oidNode || !valsNode) return;
+    const oid = decodeOid(oidNode.bytes);
+    if (oid !== '1.2.840.113549.1.9.14') return;
+    const extSeq = valsNode.children?.[0];
+    if (!extSeq) return;
+    (extSeq.children || []).forEach(ext => {
+      const extOidNode = ext.children?.[0];
+      let idx = 1;
+      if (!extOidNode) return;
+      const extOid = decodeOid(extOidNode.bytes);
+      if (ext.children?.[1]?.tag === 0x01) idx = 2;
+      const octetNode = ext.children?.[idx];
+      if (!octetNode) return;
+      if (extOid === '2.5.29.17') out.sans = parseGeneralNames(octetNode.bytes);
+      if (extOid === '2.5.29.15') out.keyUsage = parseKeyUsage(octetNode.bytes);
+    });
+  });
+  return out;
+}
+
+function parseCsr(pem){
+  const der = bytesFromPem(pem);
+  const root = readAsn1(der, 0);
+  if (root.tag !== 0x30 || root.children.length < 3) throw new Error('CSR root sequence is invalid');
+  const cri = root.children[0];
+  const sigAlg = root.children[1];
+  if (cri.tag !== 0x30 || cri.children.length < 4) throw new Error('CSR request info is invalid');
+  const subjectNode = cri.children[1];
+  const spkiNode = cri.children[2];
+  const attrsNode = cri.children[3];
+
+  const subject = parseName(subjectNode);
+  const algoSeq = spkiNode.children?.[0];
+  const pubBit = spkiNode.children?.[1];
+  const pubAlgoOid = algoSeq?.children?.[0] ? decodeOid(algoSeq.children[0].bytes) : '';
+  const curveOid = algoSeq?.children?.[1] ? decodeOid(algoSeq.children[1].bytes) : '';
+  const sigOid = sigAlg.children?.[0] ? decodeOid(sigAlg.children[0].bytes) : '';
+  const extensions = parseExtensionsFromAttributes(attrsNode);
+  const pubBits = pubBit?.bytes?.length ? pubBit.bytes.slice(1) : new Uint8Array();
+
+  let keySize = 'Unknown';
+  if (curveOid === '1.3.132.0.34') keySize = '384-bit';
+  else if (curveOid === '1.2.840.10045.3.1.7') keySize = '256-bit';
+  else if (curveOid === '1.3.132.0.35') keySize = '521-bit';
+
+  return {
+    der,
+    subject,
+    pubAlgoOid,
+    curveOid,
+    signatureOid: sigOid,
+    signatureAlgorithm: oidLabel(sigOid),
+    publicKeyAlgorithm: oidLabel(pubAlgoOid),
+    curveName: oidLabel(curveOid),
+    keySize,
+    sans: extensions.sans,
+    keyUsage: extensions.keyUsage,
+    pubHex: bytesToHex(pubBits),
+    sha256Fingerprint: formatHexColon(forge.md.sha256.create().update(uint8ToBinaryString(der)).digest().toHex()),
+    sha1Fingerprint: formatHexColon(forge.md.sha1.create().update(uint8ToBinaryString(der)).digest().toHex()),
+    md5Fingerprint: formatHexColon(forge.md.md5.create().update(uint8ToBinaryString(der)).digest().toHex()),
+    signatureValid: verifyCsrSignature(pem)
+  };
+}
+
+function verifyCsrSignature(pem){
+  try {
+    const csr = forge.pki.certificationRequestFromPem(pem);
+    return csr.verify();
+  } catch (e) {
+    try {
+      return KJUR.asn1.csr.CSRUtil.verifySignature(pem);
+    } catch (e2) {
+      return null;
+    }
+  }
+}
+
+function buildDecoderPolicy(csrInfo){
+  const checks = [];
+  const add = (item, detected, expected, ok, note='') => checks.push({item, detected, expected, ok, note});
+  add('Public key algorithm', csrInfo.publicKeyAlgorithm, 'ECC / id-ecPublicKey', /id-ecPublicKey|ec/i.test(csrInfo.publicKeyAlgorithm), 'Only ECC CSRs are accepted in this decoder.');
+  add('Curve', csrInfo.curveName, 'secp384r1 / P-384', /secp384r1/i.test(csrInfo.curveName), 'The expected curve for this workflow is P-384.');
+  add('Signature algorithm', csrInfo.signatureAlgorithm, 'ecdsa-with-SHA256 or ecdsa-with-SHA384', /ecdsa/i.test(csrInfo.signatureAlgorithm), 'The CSR should be signed with ECDSA.');
+  add('SAN presence', csrInfo.sans.length ? `${csrInfo.sans.length} entry(ies)` : 'None', 'At least one SAN', csrInfo.sans.length > 0, 'Modern hostname validation expects SAN values.');
+  add('Signature verification', csrInfo.signatureValid === true ? 'Valid signature' : csrInfo.signatureValid === false ? 'Invalid signature' : 'Unable to verify', 'Valid self-signature', csrInfo.signatureValid === true, 'A valid CSR should prove possession of the private key.');
+  return checks;
+}
+
+function renderPolicySection(policyChecks){
+  const grid = policyChecks.map(r => `
+      <div class="decoder-kv">
+        <div class="decoder-kv-label">${escapeHtml(r.item)}</div>
+        <div class="decoder-kv-value">${r.ok ? '<span class="decoder-badge decoder-badge-valid">✅ Pass</span>' : '<span class="decoder-badge decoder-badge-expired">❌ Fail</span>'}<div style="margin-top:8px;"><strong>Detected:</strong> ${escapeHtml(r.detected)}<br><strong>Expected:</strong> ${escapeHtml(r.expected)}${r.note ? `<div style="margin-top:6px;">${escapeHtml(r.note)}</div>` : ''}</div></div>
+      </div>`).join('');
+  return decoderSection('ECC Policy Checks', `<div class="decoder-kv-grid">${grid}</div>`);
+}
+
+function renderCSR(pem){
+  const csr = parseCsr(pem);
+  const policyChecks = buildDecoderPolicy(csr);
+  const isEc = /id-ecPublicKey|ec/i.test(csr.publicKeyAlgorithm);
+  results.innerHTML = `
+    <div class="decoder-card">
+      <h2 style="margin:0 0 8px 0;">Decoded ECC CSR</h2>
+      <div class="decoder-meta">
+        <span class="decoder-chip">Certificate Signing Request</span>
+        ${isEc ? '<span class="decoder-badge decoder-badge-valid">✅ ECC</span>' : '<span class="decoder-badge decoder-badge-expired">❌ Non-ECC</span>'}
+      </div>
+      ${decoderSection('Subject', `
+        <div class="decoder-kv-grid">
+          ${decoderKv('CN', getDNValue(csr.subject, 'CN'))}
+          ${decoderKv('O', getDNValue(csr.subject, 'O'))}
+          ${decoderKv('OU', getDNValue(csr.subject, 'OU'))}
+          ${decoderKv('L', getDNValue(csr.subject, 'L'))}
+          ${decoderKv('ST', getDNValue(csr.subject, 'ST'))}
+          ${decoderKv('C', getDNValue(csr.subject, 'C'))}
+          ${decoderKv('emailAddress', getDNValue(csr.subject, 'emailAddress'))}
+        </div>`)}
+      ${decoderSection('Public Key', `
+        <div class="decoder-kv-grid">
+          ${decoderKv('Algorithm', csr.publicKeyAlgorithm)}
+          ${decoderKv('Curve', csr.curveName, true)}
+          ${decoderKv('Key Size', csr.keySize)}
+          ${decoderLongValueSection('Public Key Hex', csr.pubHex)}
+        </div>`)}
+      ${decoderSection('Requested Extensions', `
+        <div class="decoder-kv-grid">
+          ${decoderKvHtml('SANs', `<ul class="decoder-list">${(csr.sans.length ? csr.sans : ['N/A']).map(v => `<li>${escapeHtml(v)}</li>`).join('')}</ul>`)}
+          ${decoderKv('Key Usage', csr.keyUsage.length ? csr.keyUsage.join(', ') : 'N/A', true)}
+        </div>`)}
+      ${decoderSection('Signature', `
+        <div class="decoder-kv-grid">
+          ${decoderKv('Signature Algorithm', csr.signatureAlgorithm)}
+          ${decoderKvHtml('Signature Status', csr.signatureValid === true ? '<span class="decoder-badge decoder-badge-valid">✅ Valid signature</span>' : csr.signatureValid === false ? '<span class="decoder-badge decoder-badge-expired">❌ Invalid signature</span>' : '<span class="decoder-badge decoder-badge-soon">Unable to verify</span>')}
+          ${decoderKvCode('SHA-256 Fingerprint', csr.sha256Fingerprint, true)}
+          ${decoderKvCode('SHA-1 Fingerprint', csr.sha1Fingerprint, true)}
+          ${decoderKvCode('MD5 Fingerprint', csr.md5Fingerprint, true)}
+        </div>`)}
+      ${renderPolicySection(policyChecks)}
+      ${decoderSection('Raw CSR', `<div class="decoder-kv-grid">${decoderLongValueSection('PEM', pem)}</div>`, true)}
+    </div>`;
+  attachDecoderBehaviours();
+}
+
+function attachDecoderBehaviours(){
+  qsa('.decoder-copy-btn', results).forEach(btn => btn.addEventListener('click', () => copyText(btn.dataset.copy || '')));
+  qsa('.decoder-section-head', results).forEach(btn => btn.addEventListener('click', () => {
+    const section = btn.closest('.decoder-section');
+    section.classList.toggle('collapsed');
+    btn.querySelector('span:last-child').textContent = section.classList.contains('collapsed') ? '+' : '−';
+  }));
+}
+
+function decodeInput(){
+  hideDecoderError();
+  results.style.display = 'none';
+  results.innerHTML = '';
+  const pem = normalisePem(pemInput.value);
+  if (!pem) {
+    showDecoderError('Could not decode input. Please provide a valid ECC CSR in PEM or DER form.');
+    return;
+  }
+  const type = detectPemType(pem);
+  if (type === 'cert') {
+    showDecoderError('This decoder is limited to ECC CSR input only. Certificates are not accepted in this build.');
+    return;
+  }
+  if (type !== 'csr') {
+    showDecoderError('Could not decode input. Please provide a valid ECC CSR in PEM or DER form.');
+    return;
+  }
+  try {
+    renderCSR(pem);
+    results.style.display = 'block';
+  } catch (e) {
+    console.error('CSR decode error:', e);
+    showDecoderError(`Could not decode input. ${e.message || 'Please check that it is a valid ECC CSR.'}`);
+  }
+}
+
+async function loadFromFile(file){
+  hideDecoderError();
+  try {
+    const pem = await readFileToPem(file);
+    if (detectPemType(pem) !== 'csr') throw new Error('Only CSR files are accepted');
+    pemInput.value = normalisePem(pem);
+    updateDecoderClearButton();
+    showFlash('CSR file loaded.', 'ok');
+  } catch (e) {
+    showDecoderError(`Could not load file. ${e.message || 'Only PEM or DER CSR files are supported in this build.'}`);
+  }
+}
+
+function resetAll(){
+  ['osVersion','iisVersion','nginxVersion','apacheVersion','xamppVersion','phpVersion','opensslVersion','opensshVersion','cn','san','org','ou','city','state','country','email','outputLinux','outputPS','outputGUI','pemInput'].forEach(id => { if (byId(id)) byId(id).value = ''; });
+  fileInput.value = '';
+  byId('resultArea').innerHTML = '';
+  byId('readinessSummary').style.display = 'none';
+  byId('readinessSummary').innerHTML = '';
+  byId('operatorChecklist').style.display = 'none';
+  byId('postDeployChecklist').style.display = 'none';
+  ['checkBeforeSubmit','checkAfterIssuance','checkBeforeBinding','checkEvidence','checkImmediateValidation','checkCertChain','checkServiceSpecific','checkCloseOut'].forEach(id => byId(id).innerHTML = '');
+  results.innerHTML = '';
+  results.style.display = 'none';
+  hideDecoderError();
+  lastDownloads = [];
+  lastAssessment = null;
+  lastFormData = null;
+  byId('platform').value = 'Windows';
+  byId('scoreNumber').textContent = '--';
+  byId('scoreSub').textContent = 'Generate a result to assess the environment.';
+  byId('scoreBar').style.width = '0%';
+  byId('quickPills').innerHTML = '<div class="pill">No result yet</div>';
+  qsa('.collapsible').forEach(c => { c.classList.remove('open'); const marker = qs('.collapsible-head span:last-child', c); if (marker) marker.textContent = '+'; });
+  ['colReadiness','colDetails','colPostDeploy'].forEach(id => { const el = byId(id); el.classList.add('open'); const marker = qs('.collapsible-head span:last-child', el); if (marker) marker.textContent = '−'; });
+  onPlatformChange();
+  syncOutputTabs();
+  showTab('tab-env');
+  updateDecoderClearButton();
+  showFlash('Form reset.', 'ok');
+}
+
+qsa('.tab-btn').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+qsa('.subtab-btn').forEach(btn => btn.addEventListener('click', () => showSubtab(btn.dataset.subtab)));
+qsa('.acc-head').forEach(btn => btn.addEventListener('click', () => toggleAcc(btn)));
+qsa('.collapsible-head').forEach(btn => btn.addEventListener('click', () => toggleCollapse(btn)));
+byId('platform').addEventListener('change', onPlatformChange);
+byId('server').addEventListener('change', onServerChange);
+byId('iisMethod').addEventListener('change', syncOutputTabs);
+byId('generateBtn').addEventListener('click', generateAll);
+byId('goOutputBtn').addEventListener('click', () => showTab('tab-output'));
+byId('regenerateBtn').addEventListener('click', generateAll);
+byId('copyActiveBtn').addEventListener('click', copyActiveOutput);
+byId('downloadBtn').addEventListener('click', downloadFiles);
+byId('printBtn').addEventListener('click', () => window.print());
+byId('resetBtn').addEventListener('click', resetAll);
+byId('decodeBtn').addEventListener('click', decodeInput);
+byId('loadFileBtn').addEventListener('click', () => fileInput.click());
+byId('loadExampleCsrBtn').addEventListener('click', () => {
+  pemInput.value = EXAMPLE_ECC_CSR;
+  updateDecoderClearButton();
+  hideDecoderError();
+  showFlash('ECC example CSR loaded.', 'ok');
+});
+byId('clearBtn').addEventListener('click', () => {
+  pemInput.value = '';
+  fileInput.value = '';
+  results.innerHTML = '';
+  results.style.display = 'none';
+  hideDecoderError();
+  updateDecoderClearButton();
+});
+fileInput.addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  await loadFromFile(file);
+});
+pemInput.addEventListener('input', updateDecoderClearButton);
+pemInput.addEventListener('keydown', (e) => { if (e.ctrlKey && e.key === 'Enter') decodeInput(); if (e.key === 'Escape') byId('clearBtn').click(); });
+
+onPlatformChange();
+syncOutputTabs();
+updateDecoderClearButton();
+['colReadiness','colDetails','colPostDeploy'].forEach(id => { const el = byId(id); el.classList.add('open'); const marker = qs('.collapsible-head span:last-child', el); if (marker) marker.textContent = '−'; });
 </script>
 </body>
 </html>
