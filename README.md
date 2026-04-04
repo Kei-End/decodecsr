@@ -1,78 +1,48 @@
-# PKI Decoder — Cloudflare-ready Edition
+# ECC CSR Assistant + PKI Decoder Hybrid
 
-This version is designed for **Cloudflare Pages** and **GitHub-based deployment**.
+This project keeps the **ECC CSR Generate Assistant** as the main page and moves the wider **PKI Decoder** into the **Decoder** tab.
 
-## Architecture choice
+## What changed
 
-Instead of a Python or Node backend, this edition decodes input **entirely in the browser** using:
+- The landing workflow is now the CSR generation assistant.
+- The Decoder tab contains:
+  - **PKI Decoder** with **Local Mode** and **Edge Mode**
+  - **SSL Checker** backed by a Cloudflare Pages Function
+- The build remains a **hybrid Cloudflare Pages** project.
 
-- `PKI.js`
-- `asn1js`
-- `WebCrypto`
-- `node-forge` (loaded for future compatibility work)
+## Features
 
-That makes it suitable for static hosting while still keeping the core decoding experience intact.
+### Main assistant
+- Environment and stack guidance
+- ECC P-384 CSR input form
+- Linux OpenSSL script output
+- Windows PowerShell + certreq output
+- Windows IIS GUI guidance
+- Readiness summary and post-deployment checklist
 
-## Why this design
+### Decoder tab
+- Paste or upload PEM / DER / Base64 input
+- Decode certificates, CSRs, PKCS#7 bundles, CRLs, and CMS objects
+- Local browser decode for privacy-sensitive data
+- Edge decode through `/api/decode`
+- SSL hostname checker through `/api/ssl-check`
 
-GitHub Pages is static-only, and Cloudflare Pages is a very good fit for a browser-side decoder. It can deploy straight from GitHub, and Cloudflare Pages also supports Functions later if you want to add a server-side SSL checker or hostname fetcher.
-
-## Features in this edition
-
-- PEM, Base64, and DER input handling
-- File upload for `.pem`, `.crt`, `.cer`, `.csr`, `.p7b`, `.p7c`, `.der`, `.crl`
-- Browser-side decode for:
-  - X.509 certificates
-  - PKCS#10 CSRs
-  - CRLs
-  - PKCS#7 / CMS signed-data bundles
-- Validation badges
-- JSON export
-- Dark mode toggle
-- Cloudflare Pages config with `wrangler.toml`
-- Security headers via `_headers`
-
-## Deployment to Cloudflare Pages
-
-### Option 1: GitHub integration
-
-1. Push this folder to a GitHub repository.
-2. In Cloudflare, create a new **Pages** project.
-3. Connect the repository.
-4. Use these settings:
-   - **Framework preset:** None
-   - **Build command:** leave blank
-   - **Build output directory:** `.`
-5. Deploy.
-
-### Option 2: Wrangler
+## Run locally
 
 ```bash
-npm install -g wrangler
-wrangler pages deploy .
+npm install
+npm run dev
 ```
 
-## Local preview
-
-You can open `index.html` directly in the browser, or serve it with a small local server:
+## Deploy
 
 ```bash
-python -m http.server 8080
+npm install
+npm run deploy
 ```
 
-Then open `http://localhost:8080`.
+## Notes
 
-## Honest gaps
-
-- CMS and PKCS#7 parsing is still best-effort, especially for unusual signed-data variants.
-- The weak-key check is only a light heuristic.
-- This edition does **not** yet include a live hostname SSL checker, because that is cleaner to add later with a Cloudflare Function or Worker.
-
-## Next sensible step
-
-If you want a full companion **SSL Checker**, the clean path is:
-
-- keep this decoder browser-side on Pages
-- add a Pages Function or Worker only for remote hostname certificate retrieval
-
-That keeps the private decode flow local while using server-side code only where it is truly needed.
+- `nodejs_compat` is enabled for the SSL checker Worker path.
+- The assistant is focused on ECC P-384 CSR generation.
+- The broader PKI decoder is available only inside the Decoder tab.

@@ -1,622 +1,272 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PKI Decoder</title>
-  <meta name="description" content="Cloudflare-ready CSR and certificate decoder" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ECC CSR Assistant &amp; PKI Decoder Hybrid</title>
   <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #475569;
-      --line: #e2e8f0;
-      --accent: #0f172a;
-      --ok-bg: #dcfce7;
-      --ok-text: #166534;
-      --bad-bg: #fee2e2;
-      --bad-text: #991b1b;
-      --warn-bg: #fef3c7;
-      --warn-text: #92400e;
+    :root{
+      --bg:#f4f7fb; --card:#ffffff; --line:#d9e2ec; --text:#0f172a; --muted:#64748b;
+      --primary:#0f766e; --primary-dark:#115e59; --secondary:#334155;
+      --ok:#166534; --ok-bg:#ecfdf5; --warn:#9a3412; --warn-bg:#fff7ed; --bad:#991b1b; --bad-bg:#fef2f2; --info:#2563eb; --info-bg:#eff6ff;
+      --soft:#f8fafc; --pill:#e2e8f0;
+      --decoder-bg:#0b1220; --decoder-panel:#111a2e; --decoder-panel-2:#16213a; --decoder-line:#263552; --decoder-text:#f8fafc; --decoder-muted:#94a3b8; --decoder-primary:#3b82f6; --decoder-primary-2:#2563eb;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--text); }
-    .shell { max-width: 1220px; margin: 0 auto; padding: 24px; }
-    header, footer, .card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; }
-    header { padding: 18px 22px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
-    nav { display:flex; gap:18px; color: var(--muted); font-size: 14px; }
-    nav a { color: inherit; text-decoration: none; }
-    main { display:grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; margin-top: 24px; }
-    .card { padding: 22px; box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04); }
-    h1,h2,h3 { margin: 0 0 8px; }
-    p { color: var(--muted); line-height: 1.5; }
-    textarea { width: 100%; min-height: 280px; padding: 16px; border-radius: 18px; border: 1px solid var(--line); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; resize: vertical; }
-    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top: 14px; }
-    button, .button, label.button { appearance:none; border:0; border-radius: 18px; padding: 12px 18px; font-weight: 700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
-    .primary { background: var(--accent); color:#fff; }
-    .secondary { background: #fff; border: 1px solid var(--line); color: var(--text); }
-    .muted { color: var(--muted); font-size: 14px; }
-    .error { background: #fff1f2; color:#9f1239; border:1px solid #fecdd3; padding:14px 16px; border-radius:16px; margin-top:16px; }
-    .grid { display:grid; gap:16px; }
-    .grid-2 { display:grid; gap:16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .kv { display:grid; gap:8px; grid-template-columns: 220px 1fr; border-bottom:1px solid #f1f5f9; padding:10px 0; }
-    .kv:last-child { border-bottom:0; }
-    .label { font-weight:700; color:#334155; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; font-size: 13px; }
-    .section { border:1px solid var(--line); border-radius: 20px; padding:16px; background:#fff; }
-    .result-card { border:1px solid var(--line); border-radius: 26px; padding:18px; background:#f8fafc; }
-    .badge { padding: 6px 10px; border-radius:999px; font-size:12px; font-weight:800; display:inline-flex; align-items:center; }
-    .pass { background: var(--ok-bg); color: var(--ok-text); }
-    .fail { background: var(--bad-bg); color: var(--bad-text); }
-    .warning { background: var(--warn-bg); color: var(--warn-text); }
-    .validation-row { display:flex; justify-content:space-between; gap:12px; padding:12px; border:1px solid #f1f5f9; border-radius:16px; }
-    .small { font-size: 13px; }
-    .list { margin:0; padding-left:18px; }
-    details { border:1px solid var(--line); border-radius:16px; padding:12px 14px; background:#fff; }
-    summary { cursor:pointer; font-weight:700; }
-    pre { margin:12px 0 0; padding:14px; overflow:auto; border-radius:16px; background:#0f172a; color:#e2e8f0; font-size:12px; }
-    .rightcol { display:grid; gap:24px; align-self:start; }
-    footer { margin: 24px 0; padding: 18px 22px; display:flex; justify-content:space-between; gap:12px; color: var(--muted); font-size: 14px; }
-    @media (max-width: 980px) {
-      main, .grid-2, .kv { grid-template-columns: 1fr; }
-      footer, header { flex-direction:column; align-items:flex-start; }
-    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+    .app{max-width:1380px;margin:0 auto;padding:24px}
+    .hero{background:linear-gradient(135deg,#0f766e,#0b5f59);color:#fff;border-radius:18px;padding:24px;box-shadow:0 16px 36px rgba(15,118,110,.18);margin-bottom:18px}
+    .hero h1{margin:0 0 6px 0;font-size:30px}.hero p{margin:0;font-size:14px;opacity:.95;max-width:980px}
+    .hero-grid{margin-top:18px;display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.stat-card{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:18px;backdrop-filter:blur(6px)}
+    .stat-title{font-size:13px;opacity:.9;margin-bottom:6px}.score-number{font-size:42px;font-weight:700;margin:0}.score-sub{font-size:13px;opacity:.9;margin-top:4px}
+    .progress{width:100%;height:12px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.2);margin-top:12px}.progress-bar{height:100%;width:0;background:#fff;transition:width .3s ease}
+    .pill-row,.actions,.decoder-toolbar,.chips{display:flex;flex-wrap:wrap;gap:8px}.pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);font-size:12px;border:1px solid rgba(255,255,255,.18)}
+    .layout{display:grid;grid-template-columns:1fr 340px;gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(15,23,42,.05)}
+    .tabs,.subtabs{display:flex;gap:8px;flex-wrap:wrap}.tabs{padding:16px 16px 0}.subtabs{margin:12px 0 14px}
+    .tab-btn,.subtab-btn,.chip{border:none;background:var(--pill);color:var(--text);font-weight:700;border-radius:12px;padding:10px 14px;cursor:pointer}.tab-btn.active,.subtab-btn.active,.chip.active{background:var(--primary);color:#fff}
+    .tab-panel,.subtab-panel{display:none}.tab-panel.active{display:block;padding:18px 22px 22px}.subtab-panel.active{display:block}
+    .section-title{margin:0 0 12px;font-size:18px;font-weight:700}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.full{grid-column:1 / -1}.field{display:flex;flex-direction:column}
+    label{margin-bottom:6px;font-size:14px;font-weight:700} input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;color:var(--text);font-size:14px}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,118,110,.12)} textarea{min-height:220px;resize:vertical;white-space:pre-wrap;font-family:Consolas,"Courier New",monospace}
+    .hint,.small-note,.muted{font-size:12px;color:var(--muted)} .inline-help{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--info-bg);border-left:5px solid var(--info);font-size:13px}
+    button.primary,button.secondary,button.light{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer} button.primary{background:var(--primary);color:#fff} button.primary:hover{background:var(--primary-dark)} button.secondary{background:var(--secondary);color:#fff} button.light{background:#e2e8f0;color:#0f172a}
+    .panel{border-radius:14px;padding:14px 16px;border-left:6px solid;margin-top:12px}.panel.info{background:var(--info-bg);border-left-color:var(--info)}.panel.ok{background:var(--ok-bg);border-left-color:var(--ok)}.panel.warn{background:var(--warn-bg);border-left-color:#fdba74}.panel.bad{background:var(--bad-bg);border-left-color:#fca5a5}
+    .summary-box{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.mini{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}.mini .n{font-size:24px;font-weight:700}.mini .t{color:var(--muted);font-size:12px;margin-top:4px}
+    .readiness-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:18px;margin-top:14px;box-shadow:0 6px 20px rgba(15,23,42,.04)} .readiness-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+    .readiness-box{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--soft)} .readiness-box h4{margin:0 0 8px;font-size:14px} .readiness-box ul{margin:0 0 0 18px;padding:0}.readiness-box li{margin:4px 0}
+    .drawer{position:sticky;top:18px;align-self:start}.accordion{display:grid;gap:10px}.acc-item{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.acc-head{width:100%;border:none;background:#fff;padding:14px 16px;text-align:left;font-weight:700;display:flex;justify-content:space-between;cursor:pointer}.acc-body{display:none;padding:0 16px 14px;color:#334155;font-size:14px}.acc-item.open .acc-body{display:block}
+    .collapsible{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:#fff;overflow:hidden}.collapsible-head{width:100%;border:none;background:#fff;padding:14px 16px;text-align:left;font-weight:700;display:flex;justify-content:space-between;cursor:pointer}.collapsible-body{display:none;padding:0 16px 16px}.collapsible.open .collapsible-body{display:block}
+    .flash{position:fixed;right:20px;bottom:20px;z-index:9999;max-width:360px;border:1px solid var(--line);box-shadow:0 8px 20px rgba(15,23,42,.18);background:#fff;color:var(--text);border-radius:14px;padding:12px 14px;display:none}.flash.ok{border-color:#86efac;background:var(--ok-bg)}.flash.warn{border-color:#fdba74;background:var(--warn-bg)}.flash.bad{border-color:#fca5a5;background:var(--bad-bg)}
+
+    .decoder-shell{background:linear-gradient(180deg,var(--decoder-bg) 0%, #08101d 100%);color:var(--decoder-text);border:1px solid var(--decoder-line);border-radius:20px;padding:20px;box-shadow:0 14px 44px rgba(0,0,0,.22)}
+    .decoder-title{margin:0 0 6px;font-size:28px;color:#fff}.decoder-sub{margin:0 0 16px;color:var(--decoder-muted);font-size:14px}
+    .decoder-input,.decoder-host{width:100%;border:1px solid var(--decoder-line);border-radius:16px;padding:16px;background:#0a1324;color:var(--decoder-text);font-size:14px;font-family:Consolas,"Courier New",monospace;outline:none}.decoder-host{font-family:Arial,Helvetica,sans-serif;padding:12px 14px;border-radius:12px}
+    .decoder-btn{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:14px}.decoder-btn-primary{background:var(--decoder-primary);color:#fff}.decoder-btn-outline{background:transparent;color:#fff;border:1px solid var(--decoder-line)}.decoder-error{border:1px solid #7f1d1d;background:rgba(127,29,29,.25);color:#fecaca;border-radius:14px;padding:12px 14px;display:none;margin-top:14px}
+    .decoder-results,.ssl-results{margin-top:22px;display:grid;gap:16px}.result-card{background:rgba(17,26,46,.9);border:1px solid var(--decoder-line);border-radius:18px;padding:18px;color:#fff}.result-card h3,.result-card h4{margin:0 0 8px}.badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}.badge.pass{background:#dcfce7;color:#166534}.badge.fail{background:#fee2e2;color:#991b1b}.badge.warning{background:#fef3c7;color:#92400e}
+    .kv{display:grid;grid-template-columns:220px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid rgba(148,163,184,.2)} .kv:last-child{border-bottom:0}.mono{font-family:Consolas,"Courier New",monospace;word-break:break-all;font-size:13px}
+    details{border:1px solid rgba(148,163,184,.25);border-radius:14px;padding:12px 14px;background:#0d1628} summary{cursor:pointer;font-weight:700;color:#fff} pre{margin:12px 0 0;padding:14px;overflow:auto;border-radius:16px;background:#08101d;color:#e2e8f0;font-size:12px}
+    .list{padding-left:18px;margin:0}.ssl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:1080px){.layout{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr}.drawer{position:static}} @media (max-width:800px){.grid,.readiness-grid,.summary-box,.ssl-grid,.kv{grid-template-columns:1fr}}
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
 </head>
 <body>
-  <div class="shell">
-    <header>
-      <div>
-        <div style="font-weight:800;font-size:18px;">PKI Decoder</div>
-        <div class="muted">Cloudflare-ready browser-side decoder for certificates, CSRs, PKCS#7, CRLs, and CMS objects.</div>
+<div class="app">
+  <div id="flash" class="flash" role="status" aria-live="polite"></div>
+  <div class="hero">
+    <h1>ECC CSR Assistant &amp; PKI Decoder Hybrid</h1>
+    <p>Generate clean ECC CSR command paths for Windows and Linux first. The wider PKI Decoder now sits under the Decoder tab, so certificate analysis remains available without displacing the main CSR workflow.</p>
+    <div class="hero-grid">
+      <div class="stat-card">
+        <div class="stat-title">Environment health score</div>
+        <div id="scoreNumber" class="score-number">--</div>
+        <div id="scoreSub" class="score-sub">Generate a result to assess the environment.</div>
+        <div class="progress"><div id="scoreBar" class="progress-bar"></div></div>
+        <div class="pill-row" style="margin-top:10px"><div class="pill">ECC: P-384</div><div class="pill">Hash: SHA-256</div><div class="pill">Hybrid Cloudflare</div></div>
       </div>
-      <nav>
-        <a href="#">Decoder</a>
-        <a href="#">SSL Checker</a>
-        <a href="#">About</a>
-      </nav>
-    </header>
-
-    <main>
-      <section class="grid">
-        <div class="card">
-          <h1>CSR and Certificate Decoder</h1>
-          <p>Paste PEM or Base64 input, or load PEM and DER files. Decoding happens in the browser, which makes the app easy to host on Cloudflare Pages and keeps sensitive material out of server logs.</p>
-          <textarea id="input" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
-          <div class="actions">
-            <button id="decodeBtn" class="primary">Decode</button>
-            <label class="button secondary">Load from File<input id="fileInput" type="file" hidden accept=".pem,.crt,.cer,.csr,.p7b,.p7c,.der,.crl" /></label>
-            <button id="downloadBtn" class="secondary" disabled>Download JSON</button>
-            <button id="themeBtn" class="secondary">Dark Mode</button>
-          </div>
-          <div id="fileMeta" class="muted" style="margin-top:10px;"></div>
-          <div id="errorBox" class="error" style="display:none;"></div>
-        </div>
-
-        <div id="results" class="grid"></div>
-      </section>
-
-      <aside class="rightcol">
-        <div class="card">
-          <h3>Privacy</h3>
-          <p class="small">This Cloudflare-ready edition processes input in-memory in the browser. No decode payload needs to leave the page.</p>
-        </div>
-        <div class="card">
-          <h3>Supported</h3>
-          <ul class="list small">
-            <li>X.509 certificates</li>
-            <li>PKCS#10 CSRs</li>
-            <li>PKCS#7 chains</li>
-            <li>CRLs</li>
-            <li>Best-effort CMS signed-data objects</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Notes</h3>
-          <p class="small">CSR verification and fingerprints are computed locally with WebCrypto. Some CMS edge cases still fall back to a raw view.</p>
-        </div>
-      </aside>
-    </main>
-
-    <footer>
-      <div>© 2026 PKI Decoder</div>
-      <div>Terms · Privacy · Contact</div>
-    </footer>
+      <div class="stat-card">
+        <div class="stat-title">Quick posture</div>
+        <div class="pill-row" id="quickPills"><div class="pill">No result yet</div></div>
+      </div>
+    </div>
   </div>
 
-  <script type="module">
-    import * as asn1js from 'https://esm.sh/asn1js@3.0.5';
-    import {
-      setEngine,
-      CryptoEngine,
-      Certificate,
-      CertificationRequest,
-      CertificateRevocationList,
-      ContentInfo,
-      SignedData,
-      getAlgorithmByOID,
-      getCrypto,
-    } from 'https://esm.sh/pkijs@3.2.5';
+  <div class="layout">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-env">Environment</button>
+        <button class="tab-btn" data-tab="tab-cert">Certificate</button>
+        <button class="tab-btn" data-tab="tab-output">Output</button>
+        <button class="tab-btn" data-tab="tab-decoder">Decoder</button>
+        <button class="tab-btn" data-tab="tab-validate">Post-Deployment Validation</button>
+        <button class="tab-btn" data-tab="tab-kb">Knowledge Bank</button>
+      </div>
 
-    const webcrypto = globalThis.crypto;
-    setEngine('browser', webcrypto, new CryptoEngine({ name: 'browser', crypto: webcrypto, subtle: webcrypto.subtle }));
+      <div id="tab-env" class="tab-panel active">
+        <h2 class="section-title">Environment and server stack</h2>
+        <div class="grid">
+          <div class="field"><label for="platform">Operating system family</label><select id="platform"><option value="Windows">Windows</option><option value="Linux">Linux</option></select></div>
+          <div class="field"><label for="osName">Operating system</label><select id="osName"></select></div>
+          <div class="field"><label for="osVersion">OS version</label><input id="osVersion" placeholder="Examples: 2016, 2019, 2022, 7, 8, 9, 22.04"></div>
+          <div class="field"><label for="server">Web server / stack</label><select id="server"></select></div>
+          <div class="field" id="field_iisVersion" hidden><label for="iisVersion">IIS version</label><input id="iisVersion" placeholder="Examples: 8.0, 8.5, 10.0"></div>
+          <div class="field" id="field_iisMethod" hidden><label for="iisMethod">Windows CSR method</label><select id="iisMethod"><option value="powershell">PowerShell + certreq</option><option value="gui">IIS GUI guidance</option><option value="both">Both</option></select></div>
+          <div class="field" id="field_nginxVersion" hidden><label for="nginxVersion">Nginx version</label><input id="nginxVersion" placeholder="Example: 1.24.0"></div>
+          <div class="field" id="field_apacheVersion" hidden><label for="apacheVersion">Apache version</label><input id="apacheVersion" placeholder="Example: 2.4.54"></div>
+          <div class="field" id="field_xamppVersion" hidden><label for="xamppVersion">XAMPP version</label><input id="xamppVersion" placeholder="Example: 7.4.33"></div>
+          <div class="field" id="field_phpVersion" hidden><label for="phpVersion">PHP version</label><input id="phpVersion" placeholder="Example: 8.1.0"></div>
+          <div class="field"><label for="opensslVersion">OpenSSL version</label><input id="opensslVersion" placeholder="Example: 1.1.1 or 3.0.2"></div>
+          <div class="field"><label for="opensshVersion">OpenSSH version</label><input id="opensshVersion" placeholder="Optional"></div>
+          <div class="full inline-help">The assistant remains the front door. Use it to shape the CSR request and produce the right script path before moving into certificate analysis.</div>
+        </div>
+      </div>
 
-    const inputEl = document.getElementById('input');
-    const resultsEl = document.getElementById('results');
-    const errorBox = document.getElementById('errorBox');
-    const fileInput = document.getElementById('fileInput');
-    const fileMeta = document.getElementById('fileMeta');
-    const decodeBtn = document.getElementById('decodeBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const themeBtn = document.getElementById('themeBtn');
+      <div id="tab-cert" class="tab-panel">
+        <h2 class="section-title">ECC CSR request details</h2>
+        <div class="grid">
+          <div class="field"><label for="cn">Common Name (CN)</label><input id="cn" placeholder="example.gov.my"></div>
+          <div class="field"><label for="san">Subject Alternative Names (SAN)</label><input id="san" placeholder="example.gov.my, www.example.gov.my"><div class="hint">Comma-separated DNS names and IP entries. Use prefixes like IP:192.0.2.10 when needed. CN is added automatically if missing.</div></div>
+          <div class="field"><label for="org">Organisation (O)</label><input id="org" placeholder="Agency Name"></div>
+          <div class="field"><label for="ou">Organisational Unit (OU)</label><input id="ou" placeholder="ICT / Security / Operations"></div>
+          <div class="field"><label for="city">Locality (L)</label><input id="city" placeholder="Putrajaya"></div>
+          <div class="field"><label for="state">State / Province (ST)</label><input id="state" placeholder="Wilayah Persekutuan Putrajaya"></div>
+          <div class="field"><label for="country">Country (C)</label><input id="country" maxlength="2" placeholder="MY"></div>
+          <div class="field"><label for="email">Email (optional)</label><input id="email" placeholder="admin@example.gov.my"></div>
+        </div>
+        <div class="actions" style="margin-top:18px"><button class="primary" id="generateBtn">Generate scripts &amp; checks</button><button class="secondary" id="goOutputBtn">Go to output</button></div>
+      </div>
 
-    let latestDecoded = null;
+      <div id="tab-output" class="tab-panel">
+        <div class="actions" style="justify-content:space-between;margin-bottom:8px"><h2 class="section-title" style="margin:0">Generated output</h2><div class="actions"><button class="primary" id="regenerateBtn">Regenerate</button><button class="secondary" id="copyActiveBtn">Copy active tab</button><button class="secondary" id="downloadBtn">Download scripts</button><button class="light" id="resetBtn">Reset</button></div></div>
+        <div class="panel info"><strong>Important</strong>This page gives script output and guidance only. Run the script on the target server or on an approved admin workstation.</div>
+        <div class="readiness-card" id="readinessSummary" style="display:none"></div>
+        <div class="subtabs" id="outputTabs"><button id="btnOutLinux" class="subtab-btn active" data-subtab="out-linux">Linux OpenSSL</button><button id="btnOutPS" class="subtab-btn" data-subtab="out-ps">Windows PowerShell</button><button id="btnOutGUI" class="subtab-btn" data-subtab="out-gui">Windows IIS GUI</button></div>
+        <div id="out-linux" class="subtab-panel active"><div class="field"><label for="outputLinux">Linux OpenSSL script</label><textarea id="outputLinux" readonly></textarea></div></div>
+        <div id="out-ps" class="subtab-panel"><div class="field"><label for="outputPS">Windows PowerShell script</label><textarea id="outputPS" readonly></textarea></div></div>
+        <div id="out-gui" class="subtab-panel"><div class="field"><label for="outputGUI">Windows IIS GUI guidance</label><textarea id="outputGUI" readonly></textarea></div></div>
+        <div class="collapsible open" id="colDetails"><button class="collapsible-head" type="button"><span>Check Details</span><span>−</span></button><div class="collapsible-body"><div id="resultArea"></div></div></div>
+      </div>
 
-    const sampleCert = `-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUcQ4Ko1+Y0HcXN5xwK6gV3kJjj1owCgYIKoZIzj0EAwIw\nFTETMBEGA1UEAwwKZXhhbXBsZS5vcmcwHhcNMjYwMTAxMDAwMDAwWhcNMjcwMTAx\nMDAwMDAwWjAVMRMwEQYDVQQDDApleGFtcGxlLm9yZzBZMBMGByqGSM49AgEGCCqG\nSM49AwEHA0IABOY7I0XJzJrP6u8CDoQW3mqLqN7TFQ+mT0P0n0U9JYdofCkV5CA3\nKnnm6D9vKsm5wHe1Y1UeM7c7p3Rr4mHhlOijUzBRMB0GA1UdDgQWBBSW9tBUE+8W\nbV7s8Y0ItW6Xc0jP4TAfBgNVHSMEGDAWgBSW9tBUE+8WbV7s8Y0ItW6Xc0jP4TAP\nBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMCA0gAMEUCIB5Xyyc6c+4m3O0k1n9c\n6Sdcj9xk6vV8wK0K1xqM5Jw7AiEA7ZC1v6CM0eX9rNnFv3kqZQsm7Y0v3J5z5x5g\nb6k7d3s=\n-----END CERTIFICATE-----`;
-    inputEl.value = sampleCert;
+      <div id="tab-decoder" class="tab-panel">
+        <div class="decoder-shell">
+          <h2 class="decoder-title">Decoder</h2>
+          <p class="decoder-sub">The assistant stays as the main workflow. The PKI Decoder and SSL Checker live here as subordinate analysis tools.</p>
+          <div class="subtabs"><button class="subtab-btn active" data-subtab="decoder-pki">PKI Decoder</button><button class="subtab-btn" data-subtab="decoder-ssl">SSL Checker</button></div>
 
-    function showError(message) {
-      errorBox.style.display = 'block';
-      errorBox.textContent = message;
-    }
-    function clearError() {
-      errorBox.style.display = 'none';
-      errorBox.textContent = '';
-    }
-
-    function pemBlocks(text) {
-      const re = /-----BEGIN ([A-Z0-9 #\-]+)-----([\s\S]*?)-----END \1-----/g;
-      const blocks = [];
-      let m;
-      while ((m = re.exec(text)) !== null) {
-        const label = m[1].trim();
-        const body = m[2].replace(/\s+/g, '');
-        blocks.push({ label, der: base64ToArrayBuffer(body) });
-      }
-      return blocks;
-    }
-
-    function base64ToArrayBuffer(base64) {
-      const binary = atob(base64.replace(/\s+/g, ''));
-      const len = binary.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-      return bytes.buffer;
-    }
-
-    function arrayBufferToBase64(buffer) {
-      const bytes = new Uint8Array(buffer);
-      let binary = '';
-      for (const b of bytes) binary += String.fromCharCode(b);
-      return btoa(binary);
-    }
-
-    function hex(buffer) {
-      return [...new Uint8Array(buffer)].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
-    }
-
-    async function digestHex(buffer, alg) {
-      const digest = await crypto.subtle.digest(alg, buffer.slice(0));
-      return hex(digest);
-    }
-
-    function parseAsn1(der) {
-      const ber = asn1js.fromBER(der);
-      if (ber.offset === -1) throw new Error('ASN.1 parse failed.');
-      return ber.result;
-    }
-
-    function oidName(oid) {
-      try {
-        const alg = getAlgorithmByOID(oid);
-        return alg?.name || oid;
-      } catch {
-        return oid;
-      }
-    }
-
-    function nameToRows(name) {
-      const map = {
-        '2.5.4.3': 'CN',
-        '2.5.4.10': 'O',
-        '2.5.4.11': 'OU',
-        '2.5.4.7': 'L',
-        '2.5.4.8': 'ST',
-        '2.5.4.6': 'C',
-        '1.2.840.113549.1.9.1': 'emailAddress'
-      };
-      return (name.typesAndValues || []).map(tv => ({ field: map[tv.type] || tv.type, oid: tv.type, value: tv.value.valueBlock.value || tv.value.valueBlock.valueDec || String(tv.value.valueBlock.valueHex || '') }));
-    }
-
-    function formatName(name) {
-      return nameToRows(name).map(x => `${x.field}=${x.value}`).join(', ');
-    }
-
-    function extractPublicKeyInfo(spki) {
-      const algorithm = spki.algorithm.algorithmId;
-      const namedCurve = spki.algorithm.algorithmParams?.valueBlock?.toString?.() || spki.algorithm.algorithmParams?.valueBlock?.value || null;
-      let keySize = null;
-      try {
-        if (algorithm === '1.2.840.113549.1.1.1') {
-          const rsaAsn1 = asn1js.fromBER(spki.subjectPublicKey.valueBlock.valueHexView.slice().buffer);
-          const modulus = rsaAsn1.result.valueBlock.value[0];
-          keySize = modulus.valueBlock.valueHex.byteLength * 8;
-        } else if (algorithm === '1.2.840.10045.2.1') {
-          const bits = spki.subjectPublicKey.valueBlock.valueHex.byteLength * 8;
-          keySize = bits;
-        } else if (algorithm === '1.3.101.112') {
-          keySize = 256;
-        } else if (algorithm === '1.3.101.113') {
-          keySize = 456;
-        }
-      } catch {}
-      return {
-        algorithm_oid: algorithm,
-        algorithm: oidName(algorithm),
-        key_size: keySize,
-        curve: namedCurve,
-      };
-    }
-
-    function extName(oid) {
-      const map = {
-        '2.5.29.17': 'Subject Alternative Name',
-        '2.5.29.15': 'Key Usage',
-        '2.5.29.37': 'Extended Key Usage',
-        '2.5.29.19': 'Basic Constraints',
-        '2.5.29.35': 'Authority Key Identifier',
-        '2.5.29.14': 'Subject Key Identifier',
-        '2.5.29.31': 'CRL Distribution Points',
-        '1.3.6.1.5.5.7.1.1': 'Authority Information Access',
-        '2.5.29.32': 'Certificate Policies',
-      };
-      return map[oid] || oid;
-    }
-
-    function simpleExtensionValue(ext) {
-      try {
-        if (ext.parsedValue) {
-          if (Array.isArray(ext.parsedValue.altNames)) {
-            return ext.parsedValue.altNames.map(x => ({ type: x.type, value: x.value }));
-          }
-          return JSON.parse(JSON.stringify(ext.parsedValue));
-        }
-      } catch {}
-      return { raw_hex: hex(ext.extnValue.valueBlock.valueHex) };
-    }
-
-    function validityChecks(notBefore, notAfter) {
-      const now = new Date();
-      if (now < notBefore) return { expired: false, notYetValid: true };
-      if (now > notAfter) return { expired: true, notYetValid: false };
-      return { expired: false, notYetValid: false };
-    }
-
-    function weakSig(sig) {
-      const v = String(sig).toLowerCase();
-      return v.includes('sha-1') || v.includes('sha1') || v.includes('md5');
-    }
-
-    function weakKeyHeuristic(spki) {
-      try {
-        const algorithm = spki.algorithm.algorithmId;
-        if (algorithm !== '1.2.840.113549.1.1.1') return { status: 'warning', detail: 'Weak-key screening in this build is RSA-focused only.' };
-        const rsaAsn1 = asn1js.fromBER(spki.subjectPublicKey.valueBlock.valueHexView.slice().buffer);
-        const modulus = rsaAsn1.result.valueBlock.value[0].valueBlock.valueHex;
-        const prefix = hex(modulus).slice(0, 4).toLowerCase();
-        const bad = new Set(['0002','0003','0005','0006','0007','0008','0009','000b','000d','000f']);
-        return bad.has(prefix)
-          ? { status: 'warning', detail: 'RSA modulus matches a weak-key prefix heuristic. Confirm independently.' }
-          : { status: 'pass', detail: 'No match against a simple Debian weak-key prefix heuristic.' };
-      } catch {
-        return { status: 'warning', detail: 'Weak-key screening could not be completed.' };
-      }
-    }
-
-    async function decodeCertificate(der) {
-      const cert = new Certificate({ schema: parseAsn1(der) });
-      const pub = extractPublicKeyInfo(cert.subjectPublicKeyInfo);
-      const sig = oidName(cert.signatureAlgorithm.algorithmId);
-      const state = validityChecks(cert.notBefore.value, cert.notAfter.value);
-      const validations = [
-        { label: 'Validity window', status: state.expired || state.notYetValid ? 'fail' : 'pass', detail: state.expired ? 'Certificate has expired.' : state.notYetValid ? 'Certificate is not yet valid.' : 'Certificate is currently valid.' },
-        { label: pub.algorithm.toLowerCase().includes('rsa') ? 'RSA key size' : 'Key size', status: !pub.key_size ? 'warning' : (pub.algorithm.toLowerCase().includes('rsa') ? pub.key_size >= 2048 : pub.key_size >= 256) ? 'pass' : 'fail', detail: pub.key_size ? `${pub.algorithm} key size is ${pub.key_size} bits.` : 'Key size could not be derived.' },
-        { label: 'Signature algorithm', status: weakSig(sig) ? 'fail' : 'pass', detail: weakSig(sig) ? `Weak signature algorithm detected: ${sig}.` : `Signature algorithm is ${sig}.` },
-      ];
-      const weak = weakKeyHeuristic(cert.subjectPublicKeyInfo);
-      validations.push({ label: 'Known weak key screen', status: weak.status, detail: weak.detail });
-      return {
-        type: 'certificate',
-        subject: nameToRows(cert.subject),
-        issuer: nameToRows(cert.issuer),
-        subject_display: formatName(cert.subject),
-        issuer_display: formatName(cert.issuer),
-        serial_number: hex(cert.serialNumber.valueBlock.valueHex),
-        validity: {
-          not_before: cert.notBefore.value.toISOString(),
-          not_after: cert.notAfter.value.toISOString(),
-          expired: state.expired,
-          not_yet_valid: state.notYetValid,
-        },
-        public_key: pub,
-        signature_algorithm: sig,
-        fingerprints: {
-          sha256: await digestHex(der, 'SHA-256'),
-          sha1: await digestHex(der, 'SHA-1'),
-        },
-        extensions: (cert.extensions || []).map(ext => ({ oid: ext.extnID, name: extName(ext.extnID), critical: ext.critical, value: simpleExtensionValue(ext) })),
-        validations,
-        raw_asn1_type: 'Certificate',
-      };
-    }
-
-    async function decodeCSR(der) {
-      const csr = new CertificationRequest({ schema: parseAsn1(der) });
-      const pub = extractPublicKeyInfo(csr.subjectPublicKeyInfo);
-      const sig = oidName(csr.signatureAlgorithm.algorithmId);
-      let signatureValid = false;
-      try { signatureValid = await csr.verify(); } catch {}
-      const empty = nameToRows(csr.subject).filter(x => !String(x.value || '').trim()).map(x => x.field);
-      const validations = [
-        { label: 'CSR self-signature', status: signatureValid ? 'pass' : 'fail', detail: signatureValid ? 'CSR self-signature is valid.' : 'CSR self-signature is invalid.' },
-        { label: pub.algorithm.toLowerCase().includes('rsa') ? 'RSA key size' : 'Key size', status: !pub.key_size ? 'warning' : (pub.algorithm.toLowerCase().includes('rsa') ? pub.key_size >= 2048 : pub.key_size >= 256) ? 'pass' : 'fail', detail: pub.key_size ? `${pub.algorithm} key size is ${pub.key_size} bits.` : 'Key size could not be derived.' },
-        { label: 'Subject completeness', status: empty.length ? 'fail' : 'pass', detail: empty.length ? `Empty subject values found in: ${empty.join(', ')}.` : 'No empty subject values found.' },
-      ];
-      const weak = weakKeyHeuristic(csr.subjectPublicKeyInfo);
-      validations.push({ label: 'Known weak key screen', status: weak.status, detail: weak.detail });
-      let requestedExtensions = [];
-      for (const attr of (csr.attributes || [])) {
-        if (attr.type === '1.2.840.113549.1.9.14' && attr.values?.[0]) {
-          const exts = attr.values[0].extensions || [];
-          requestedExtensions = exts.map(ext => ({ oid: ext.extnID, name: extName(ext.extnID), critical: ext.critical, value: simpleExtensionValue(ext) }));
-        }
-      }
-      return {
-        type: 'csr',
-        subject: nameToRows(csr.subject),
-        subject_display: formatName(csr.subject),
-        public_key: pub,
-        signature_algorithm: sig,
-        requested_extensions: requestedExtensions,
-        signature_valid: signatureValid,
-        validations,
-        raw_asn1_type: 'CertificationRequest',
-      };
-    }
-
-    async function decodeCRL(der) {
-      const crl = new CertificateRevocationList({ schema: parseAsn1(der) });
-      return {
-        type: 'crl',
-        issuer: nameToRows(crl.issuer),
-        this_update: crl.thisUpdate.value.toISOString(),
-        next_update: crl.nextUpdate?.value?.toISOString?.() || null,
-        signature_algorithm: oidName(crl.signature.algorithmId),
-        revoked_certificates: (crl.revokedCertificates || []).map(entry => ({
-          serial_number: hex(entry.userCertificate.valueBlock.valueHex),
-          revocation_date: entry.revocationDate.value.toISOString(),
-          reason: entry.crlEntryExtensions?.extensions?.find(x => x.extnID === '2.5.29.21')?.parsedValue?.valueBlock?.toString?.() || null,
-        })),
-        raw_asn1_type: 'CertificateRevocationList',
-      };
-    }
-
-    async function decodePKCS7orCMS(der) {
-      const contentInfo = new ContentInfo({ schema: parseAsn1(der) });
-      const type = contentInfo.contentType;
-      const out = { type: 'cms', content_type: type, certificates: [] };
-      if (type === '1.2.840.113549.1.7.2') {
-        const signedData = new SignedData({ schema: contentInfo.content });
-        const certs = signedData.certificates || [];
-        for (const cert of certs) {
-          try {
-            const certDer = cert.toSchema().toBER(false);
-            out.certificates.push(await decodeCertificate(certDer));
-          } catch {}
-        }
-        out.type = 'pkcs7';
-        classifyChain(out.certificates);
-      }
-      return out;
-    }
-
-    function classifyChain(certs) {
-      const issuers = new Set(certs.map(c => c.issuer_display));
-      for (const cert of certs) {
-        if (cert.subject_display === cert.issuer_display) cert.chain_role = 'root';
-        else if (!issuers.has(cert.subject_display)) cert.chain_role = 'end-entity';
-        else cert.chain_role = 'intermediate';
-      }
-    }
-
-    async function decodeOne(der) {
-      const attempts = [decodeCertificate, decodeCSR, decodeCRL, decodePKCS7orCMS];
-      const errors = [];
-      for (const fn of attempts) {
-        try { return await fn(der); } catch (e) { errors.push(`${fn.name}: ${e.message}`); }
-      }
-      throw new Error(`Unable to decode object. ${errors.join(' | ')}`);
-    }
-
-    async function loadCurrentInputObjects() {
-      const text = inputEl.value.trim();
-      const blocks = pemBlocks(text);
-      if (blocks.length) return blocks;
-      try {
-        return [{ label: 'BASE64_OR_DER', der: base64ToArrayBuffer(text) }];
-      } catch {
-        throw new Error('Unable to decode — the input does not appear to be a valid PEM/Base64/DER certificate, CSR, PKCS#7, CRL, or CMS object.');
-      }
-    }
-
-    function badge(status) {
-      return `<span class="badge ${status}">${status.toUpperCase()}</span>`;
-    }
-
-    function sectionKV(label, value, mono = false) {
-      return `<div class="kv"><div class="label">${escapeHtml(label)}</div><div class="${mono ? 'mono' : ''}">${escapeHtml(value ?? '—')}</div></div>`;
-    }
-
-    function nameSection(title, rows = []) {
-      return `<div class="section"><h3>${escapeHtml(title)}</h3>${rows.length ? rows.map(row => `<div class="kv"><div class="label">${escapeHtml(row.field)}</div><div>${escapeHtml(String(row.value ?? ''))}</div></div>`).join('') : '<div class="small muted">No values found.</div>'}</div>`;
-    }
-
-    function validationSection(rows = []) {
-      return `<div class="section"><h3>Validation</h3><div class="grid">${rows.map(item => `<div class="validation-row"><div><div style="font-weight:700;">${escapeHtml(item.label)}</div><div class="small muted">${escapeHtml(item.detail)}</div></div>${badge(item.status)}</div>`).join('')}</div></div>`;
-    }
-
-    function extensionSection(exts = []) {
-      return `<div class="section"><h3>Extensions</h3><div class="grid">${exts.map((ext, i) => `<details ${i < 2 ? 'open' : ''}><summary>${escapeHtml(ext.name)} <span class="small muted">(${escapeHtml(ext.oid)})</span></summary><pre>${escapeHtml(JSON.stringify(ext.value, null, 2))}</pre></details>`).join('') || '<div class="small muted">No extensions found.</div>'}</div></div>`;
-    }
-
-    function renderObject(obj) {
-      if (obj.type === 'certificate') {
-        return `<article class="result-card grid">
-          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-            <div><h2>X.509 Certificate</h2><div class="muted small">${escapeHtml(obj.subject_display || '')}</div></div>
-            ${obj.chain_role ? `<span class="badge warning">${escapeHtml(obj.chain_role.toUpperCase())}</span>` : ''}
+          <div id="decoder-pki" class="subtab-panel active">
+            <div class="chips" style="margin-bottom:12px"><button id="modeLocal" class="chip active">Local Mode</button><button id="modeEdge" class="chip">Edge Mode</button></div>
+            <textarea id="decoderInput" class="decoder-input" placeholder="Paste certificate, CSR, PKCS#7, CRL, or CMS content here"></textarea>
+            <input id="decoderFileInput" type="file" hidden accept=".pem,.crt,.cer,.csr,.p7b,.p7c,.der,.crl">
+            <div class="decoder-toolbar" style="margin-top:12px"><button id="decoderDecodeBtn" class="decoder-btn decoder-btn-primary">Decode</button><button id="decoderLoadBtn" class="decoder-btn decoder-btn-outline">Load from File</button><button id="decoderExampleBtn" class="decoder-btn decoder-btn-outline">Load Example</button><button id="decoderJsonBtn" class="decoder-btn decoder-btn-outline" disabled>Download JSON</button></div>
+            <div id="decoderFileMeta" class="small-note" style="margin-top:10px"></div>
+            <div id="decoderError" class="decoder-error"></div>
+            <div id="decoderResults" class="decoder-results"></div>
           </div>
-          ${validationSection(obj.validations)}
-          <div class="grid-2">${nameSection('Subject', obj.subject)}${nameSection('Issuer', obj.issuer)}</div>
-          <div class="section">
-            <h3>Certificate Details</h3>
-            ${sectionKV('Serial Number', obj.serial_number, true)}
-            ${sectionKV('Not Before', obj.validity.not_before, true)}
-            ${sectionKV('Not After', obj.validity.not_after, true)}
-            ${sectionKV('Public Key Algorithm', obj.public_key.algorithm)}
-            ${sectionKV('Key Size', obj.public_key.key_size ? `${obj.public_key.key_size} bits` : '—')}
-            ${sectionKV('Curve', obj.public_key.curve)}
-            ${sectionKV('Signature Algorithm', obj.signature_algorithm)}
-            ${sectionKV('SHA-256 Fingerprint', obj.fingerprints.sha256, true)}
-            ${sectionKV('SHA-1 Fingerprint', obj.fingerprints.sha1, true)}
+
+          <div id="decoder-ssl" class="subtab-panel">
+            <div class="ssl-grid"><input id="sslHostInput" class="decoder-host" placeholder="example.com"><button id="sslCheckBtn" class="decoder-btn decoder-btn-primary">Check Hostname</button></div>
+            <div class="small-note" style="margin-top:10px">This path uses a Cloudflare Pages Function with node TLS compatibility enabled.</div>
+            <div id="sslError" class="decoder-error"></div>
+            <div id="sslResults" class="ssl-results"></div>
           </div>
-          ${extensionSection(obj.extensions)}
-        </article>`;
-      }
-      if (obj.type === 'csr') {
-        return `<article class="result-card grid">
-          <div><h2>Certificate Signing Request</h2><div class="muted small">${escapeHtml(obj.subject_display || '')}</div></div>
-          ${validationSection(obj.validations)}
-          ${nameSection('Subject', obj.subject)}
-          <div class="section">
-            <h3>CSR Details</h3>
-            ${sectionKV('Public Key Algorithm', obj.public_key.algorithm)}
-            ${sectionKV('Key Size', obj.public_key.key_size ? `${obj.public_key.key_size} bits` : '—')}
-            ${sectionKV('Curve', obj.public_key.curve)}
-            ${sectionKV('Signature Algorithm', obj.signature_algorithm)}
-            ${sectionKV('Signature Valid', String(obj.signature_valid))}
+        </div>
+      </div>
+
+      <div id="tab-validate" class="tab-panel">
+        <h2 class="section-title">Post-Deployment Validation</h2>
+        <div class="readiness-card" id="postDeployChecklist">
+          <div class="readiness-grid">
+            <div class="readiness-box"><h4>Immediate validation</h4><ul id="checkImmediateValidation"></ul></div>
+            <div class="readiness-box"><h4>Certificate and chain</h4><ul id="checkCertChain"></ul></div>
+            <div class="readiness-box"><h4>Service-specific checks</h4><ul id="checkServiceSpecific"></ul></div>
+            <div class="readiness-box"><h4>Close-out actions</h4><ul id="checkCloseOut"></ul></div>
           </div>
-          ${extensionSection(obj.requested_extensions)}
-        </article>`;
-      }
-      if (obj.type === 'crl') {
-        return `<article class="result-card grid">
-          <div><h2>Certificate Revocation List</h2></div>
-          ${nameSection('Issuer', obj.issuer)}
-          <div class="section">
-            <h3>CRL Details</h3>
-            ${sectionKV('This Update', obj.this_update, true)}
-            ${sectionKV('Next Update', obj.next_update, true)}
-            ${sectionKV('Signature Algorithm', obj.signature_algorithm)}
-          </div>
-          <div class="section"><h3>Revoked Certificates</h3><pre>${escapeHtml(JSON.stringify(obj.revoked_certificates, null, 2))}</pre></div>
-        </article>`;
-      }
-      if (obj.type === 'pkcs7' || obj.type === 'cms') {
-        return `<article class="result-card grid">
-          <div><h2>${escapeHtml(obj.type.toUpperCase())} Object</h2><div class="muted small">Content type: ${escapeHtml(obj.content_type || '')}</div></div>
-          ${obj.certificates?.length ? obj.certificates.map(renderObject).join('') : `<div class="section"><pre>${escapeHtml(JSON.stringify(obj, null, 2))}</pre></div>`}
-        </article>`;
-      }
-      return `<article class="result-card"><pre>${escapeHtml(JSON.stringify(obj, null, 2))}</pre></article>`;
-    }
+        </div>
+      </div>
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-    }
+      <div id="tab-kb" class="tab-panel">
+        <h2 class="section-title">Built-in knowledge bank</h2>
+        <div class="readiness-card"><div class="readiness-grid"><div class="readiness-box"><h4>ECC profile</h4><ul><li>P-384 / secp384r1 / SHA-256</li><li>PowerShell + certreq for Windows</li><li>OpenSSL path for Linux</li></ul></div><div class="readiness-box"><h4>Decoder scope</h4><ul><li>Certificates</li><li>CSRs</li><li>PKCS#7 and CMS</li><li>CRLs and SSL hostname checking</li></ul></div></div></div>
+      </div>
+    </div>
 
-    decodeBtn.addEventListener('click', async () => {
-      clearError();
-      resultsEl.innerHTML = '';
-      downloadBtn.disabled = true;
-      latestDecoded = null;
-      try {
-        decodeBtn.disabled = true;
-        decodeBtn.textContent = 'Decoding…';
-        const objects = await loadCurrentInputObjects();
-        const decoded = [];
-        const errors = [];
-        for (const block of objects) {
-          try {
-            const item = await decodeOne(block.der);
-            item.input_label = block.label;
-            decoded.push(item);
-          } catch (e) {
-            errors.push(`${block.label}: ${e.message}`);
-          }
-        }
-        if (!decoded.length) throw new Error(errors[0] || 'No supported PKI objects found.');
-        latestDecoded = { objects: decoded, errors };
-        resultsEl.innerHTML = `${errors.length ? `<div class="error">${escapeHtml(errors.join(' | '))}</div>` : ''}${decoded.map(renderObject).join('')}`;
-        downloadBtn.disabled = false;
-      } catch (e) {
-        showError(e.message || 'Decode failed.');
-      } finally {
-        decodeBtn.disabled = false;
-        decodeBtn.textContent = 'Decode';
-      }
-    });
+    <div class="drawer">
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 10px">Why this layout changed</h3>
+        <div class="accordion">
+          <div class="acc-item"><button class="acc-head" type="button">Main page first <span>+</span></button><div class="acc-body">The CSR assistant now leads the page because the core purpose is to help the operator produce the right request script before anything else.</div></div>
+          <div class="acc-item"><button class="acc-head" type="button">Decoder under one tab <span>+</span></button><div class="acc-body">The broader PKI decoder remains present, but it now supports the main workflow rather than competing with it.</div></div>
+          <div class="acc-item"><button class="acc-head" type="button">Hybrid Cloudflare path <span>+</span></button><div class="acc-body">Local decode protects pasted material. Edge mode and SSL checking keep the Cloudflare server-side route ready for live certificate inspection.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    fileInput.addEventListener('change', async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      fileMeta.textContent = `Loaded file: ${file.name}`;
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
-      if (text.includes('-----BEGIN ')) {
-        inputEl.value = text;
-      } else {
-        inputEl.value = arrayBufferToBase64(bytes.buffer);
-      }
-    });
+<script>
+const KB={baselines:{opensslMin:'1.1.1',windowsMinYear:2012,linuxCentOSMin:7,apacheMin:'2.4.54',xamppMin:'7.4.33',phpMin:'7.4.33',iisMinMajor:'8.0'}};
+const OS_OPTIONS={Windows:[{value:'Windows Server',label:'Windows Server'},{value:'Windows Client',label:'Windows (Client)'},{value:'Other Windows',label:'Other Windows'}],Linux:[{value:'CentOS',label:'CentOS'},{value:'RHEL',label:'RHEL'},{value:'Ubuntu',label:'Ubuntu'},{value:'Debian',label:'Debian'},{value:'Rocky',label:'Rocky Linux'},{value:'AlmaLinux',label:'AlmaLinux'},{value:'Other Linux',label:'Other Linux'}]};
+const SERVER_OPTIONS={Windows:[{value:'IIS',label:'IIS'},{value:'Apache',label:'Apache'},{value:'Nginx',label:'Nginx'},{value:'XAMPP',label:'XAMPP'},{value:'Tomcat',label:'Tomcat / Java stack'},{value:'Other',label:'Other'}],Linux:[{value:'Apache',label:'Apache'},{value:'Nginx',label:'Nginx'},{value:'XAMPP',label:'XAMPP'},{value:'Tomcat',label:'Tomcat / Java stack'},{value:'Other',label:'Other'}]};
+let lastDownloads=[]; let flashTimer=null;
+window.byId=id=>document.getElementById(id); window.qsa=(sel,p=document)=>Array.from(p.querySelectorAll(sel)); const byId=window.byId, qsa=window.qsa;
+function normalise(v){return String(v||'').trim();}
+function showFlash(message,type='ok'){const f=byId('flash');f.className=`flash ${type}`;f.textContent=message;f.style.display='block';clearTimeout(flashTimer);flashTimer=setTimeout(()=>f.style.display='none',2600)}
+function fillSelect(el,options){el.innerHTML=''; options.forEach(opt=>{const o=document.createElement('option'); o.value=opt.value; o.textContent=opt.label; el.appendChild(o);});}
+window.showTab=function showTab(tabId){qsa('.tab-panel').forEach(p=>p.classList.remove('active'));qsa('.tab-btn').forEach(b=>b.classList.remove('active'));byId(tabId).classList.add('active');qsa('.tab-btn').find(b=>b.dataset.tab===tabId)?.classList.add('active');}
+window.showSubtab=function showSubtab(id){qsa('.subtab-panel').forEach(p=>p.classList.remove('active'));qsa('.subtab-btn').forEach(b=>b.classList.remove('active'));byId(id).classList.add('active');qsa('.subtab-btn').filter(b=>b.dataset.subtab===id).forEach(b=>b.classList.add('active'));}
+function toggleCollapse(btn){const item=btn.closest('.collapsible'); item.classList.toggle('open'); btn.querySelector('span:last-child').textContent=item.classList.contains('open')?'−':'+';}
+function toggleAcc(btn){const item=btn.closest('.acc-item'); item.classList.toggle('open'); btn.querySelector('span').textContent=item.classList.contains('open')?'−':'+';}
+function setHidden(id,hidden){byId(id).hidden=hidden;}
+function onPlatformChange(){const platform=byId('platform').value; fillSelect(byId('osName'),OS_OPTIONS[platform]); fillSelect(byId('server'),SERVER_OPTIONS[platform]); onServerChange(); syncOutputTabs();}
+function onServerChange(){const server=byId('server').value; setHidden('field_iisVersion',server!=='IIS'); setHidden('field_iisMethod',server!=='IIS'); setHidden('field_nginxVersion',server!=='Nginx'); setHidden('field_apacheVersion',!(server==='Apache'||server==='XAMPP')); setHidden('field_xamppVersion',server!=='XAMPP'); setHidden('field_phpVersion',server!=='XAMPP'); syncOutputTabs();}
+function syncOutputTabs(){const platform=byId('platform').value, server=byId('server').value, iisMethod=byId('iisMethod').value; byId('btnOutLinux').style.display=platform==='Linux'?'':'none'; byId('btnOutPS').style.display=(platform==='Windows'&&(server!=='IIS'||iisMethod==='powershell'||iisMethod==='both'))?'':'none'; byId('btnOutGUI').style.display=(platform==='Windows'&&server==='IIS'&&(iisMethod==='gui'||iisMethod==='both'))?'':'none'; if(platform==='Linux') activateOutputSubtab('out-linux'); else if(server==='IIS'&&iisMethod==='gui') activateOutputSubtab('out-gui'); else activateOutputSubtab('out-ps');}
+function activateOutputSubtab(id){['out-linux','out-ps','out-gui'].forEach(x=>byId(x).classList.remove('active')); qsa('#outputTabs .subtab-btn').forEach(x=>x.classList.remove('active')); byId(id).classList.add('active'); qsa('#outputTabs .subtab-btn').find(x=>x.dataset.subtab===id)?.classList.add('active');}
+function parseNums(v){const m=String(v||'').match(/\d+/g); return m?m.map(n=>parseInt(n,10)):null;}
+function compareVersions(a,b){const x=parseNums(a),y=parseNums(b); if(!x||!y)return null; const len=Math.max(x.length,y.length); for(let i=0;i<len;i++){const p=x[i]||0,q=y[i]||0; if(p>q)return 1; if(p<q)return -1;} return 0;}
+function extractWindowsYear(text){const m=String(text||'').match(/(2008|2012|2016|2019|2022|2025)/); return m?parseInt(m[1],10):null;}
+function extractMajor(text){const m=String(text||'').match(/(\d+)/); return m?parseInt(m[1],10):null;}
+function safeFileBase(cn){const out=String(cn||'server').trim().replace(/[^a-zA-Z0-9._-]/g,'_'); return out||'server';}
+function isValidHostname(host){if(!host||host.length>253)return false; if(host.startsWith('*.')) host=host.slice(2); return host.split('.').every(part=>/^[a-zA-Z0-9-]{1,63}$/.test(part)&&!part.startsWith('-')&&!part.endsWith('-'));}
+function isValidIP(ip){return /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(ip);}
+function buildSANList(rawSAN,cn){const input=rawSAN.split(',').map(x=>x.trim()).filter(Boolean); const values=[], seen=new Set(); if(cn) input.unshift(cn); for(const entry of input){const lower=entry.toLowerCase(); let item=null; if(lower.startsWith('ip:')){const ip=entry.slice(3).trim(); if(isValidIP(ip)) item={type:'IP',value:ip};} else if(isValidHostname(entry)){item={type:'DNS',value:entry};} if(!item) continue; const key=`${item.type}:${item.value.toLowerCase()}`; if(seen.has(key)) continue; seen.add(key); values.push(item);} return values;}
+function readForm(){const data={platform:normalise(byId('platform').value),osName:normalise(byId('osName').value),osVersion:normalise(byId('osVersion').value),server:normalise(byId('server').value),iisVersion:normalise(byId('iisVersion').value),iisMethod:normalise(byId('iisMethod').value),nginxVersion:normalise(byId('nginxVersion').value),apacheVersion:normalise(byId('apacheVersion').value),xamppVersion:normalise(byId('xamppVersion').value),phpVersion:normalise(byId('phpVersion').value),opensslVersion:normalise(byId('opensslVersion').value),opensshVersion:normalise(byId('opensshVersion').value),cn:normalise(byId('cn').value),san:normalise(byId('san').value),org:normalise(byId('org').value),ou:normalise(byId('ou').value),city:normalise(byId('city').value),state:normalise(byId('state').value),country:normalise(byId('country').value).toUpperCase(),email:normalise(byId('email').value)}; data.sans=buildSANList(data.san,data.cn); data.fileBase=safeFileBase(data.cn); return data;}
+function validate(data){const errors=[]; ['cn','org','ou','city','state','country'].forEach(k=>{if(!data[k]) errors.push(`Missing ${k.toUpperCase()}.`);}); if(data.country&&data.country.length!==2) errors.push('Country must be a valid 2-letter code.'); if(!isValidHostname(data.cn)) errors.push('CN must be a valid DNS name.'); if(data.sans.length===0) errors.push('At least one valid SAN entry is required.'); return errors;}
+function sanOpenSslParts(sans){return sans.map(item=>`${item.type}:${item.value}`).join(',');}
+function sanInfLines(sans){const values=sans.map(item=>`${item.type}=${item.value}`); return values.map((v,i)=>`_continue_ = "${v}${i<values.length-1?'&':''}"`).join('\n');}
+function buildLinuxScript(data){const keyFile=`${data.fileBase}.key`,csrFile=`${data.fileBase}.csr`,confFile=`${data.fileBase}-csr.conf`; return `# Linux ECC CSR generation\nset -euo pipefail\n\ncat > "${confFile}" <<'EOF'\n[ req ]\ndefault_md = sha256\nprompt = no\ndistinguished_name = dn\nreq_extensions = req_ext\n\n[ dn ]\nC = ${data.country}\nST = ${data.state}\nL = ${data.city}\nO = ${data.org}\nOU = ${data.ou}\nCN = ${data.cn}${data.email?`\nemailAddress = ${data.email}`:''}\n\n[ req_ext ]\nsubjectAltName = ${sanOpenSslParts(data.sans)}\nkeyUsage = critical,digitalSignature,keyAgreement\nEOF\n\nopenssl ecparam -name secp384r1 -genkey -noout -out "${keyFile}"\nopenssl req -new -sha256 -key "${keyFile}" -out "${csrFile}" -config "${confFile}"\nopenssl req -in "${csrFile}" -noout -text\n`;}
+function buildWindowsINF(data){return `[Version]\nSignature="$Windows NT$"\n\n[NewRequest]\nSubject = "CN=${data.cn}, O=${data.org}, OU=${data.ou}, L=${data.city}, S=${data.state}, C=${data.country}${data.email?`, E=${data.email}`:''}"\nMachineKeySet = TRUE\nExportable = FALSE\nRequestType = PKCS10\nKeyAlgorithm = ECDSA_P384\nKeyLength = 384\nHashAlgorithm = SHA256\nProviderName = "Microsoft Software Key Storage Provider"\nKeyUsage = 0x80\n\n[Extensions]\n2.5.29.17 = "{text}"\n${sanInfLines(data.sans)}\n`}
+function buildWindowsPowerShell(data){const infName=`${data.fileBase}-request.inf`, reqName=`${data.fileBase}-request.req`; return `# Windows PowerShell ECC CSR generation\n$InfPath = Join-Path (Get-Location) "${infName}"\n$ReqPath = Join-Path (Get-Location) "${reqName}"\n$InfContent = @"\n${buildWindowsINF(data).replace(/`/g,'``')}\n"@\nSet-Content -Path $InfPath -Value $InfContent -Encoding ascii\ncertreq -new $InfPath $ReqPath\nWrite-Host "Request file created:" $ReqPath\n`}
+function buildWindowsGUIGuidance(data){return `# IIS GUI guidance\n1. Open IIS Manager\n2. Open Server Certificates\n3. Create Certificate Request\n4. Use CN ${data.cn}\n5. Choose Microsoft Software Key Storage Provider\n6. Choose 384-bit ECC path\n7. Save the CSR and verify SAN handling before submission\n`;}
+function assess(data){let score=100,ok=0,warn=0,fail=0; const rows=[]; const push=(label,status,detail)=>{rows.push({label,status,detail}); if(status==='pass') ok++; if(status==='warning'){warn++; score-=10;} if(status==='fail'){fail++; score-=25;}}; const opensslCmp=data.opensslVersion?compareVersions(data.opensslVersion,KB.baselines.opensslMin):null; push('SAN presence',data.sans.length?'pass':'fail',data.sans.length?`${data.sans.length} SAN value(s) present.`:'No valid SAN value found.'); push('OpenSSL baseline',!data.opensslVersion?'warning':opensslCmp===null?'warning':opensslCmp<0?'fail':'pass',data.opensslVersion?`Detected ${data.opensslVersion}.`:'OpenSSL version not provided.'); if(data.platform==='Windows'){const year=extractWindowsYear(data.osVersion)||extractMajor(data.osVersion); push('Windows baseline',year&&year>=KB.baselines.windowsMinYear?'pass':year?'fail':'warning',data.osVersion||'Windows version not provided.'); if(data.server==='IIS'){const iisCmp=data.iisVersion?compareVersions(data.iisVersion,KB.baselines.iisMinMajor):null; push('IIS baseline',!data.iisVersion?'warning':iisCmp===null?'warning':iisCmp<0?'fail':'pass',data.iisVersion||'IIS version not provided.');}} if(data.platform==='Linux'&&data.osName==='CentOS'){const major=extractMajor(data.osVersion); push('CentOS baseline',major&&major>=KB.baselines.linuxCentOSMin?'pass':major?'fail':'warning',data.osVersion||'CentOS version not provided.');} return {score:Math.max(0,score),ok,warn,fail,rows};}
+function renderSummary(data,res){const box=byId('readinessSummary'); box.style.display='block'; box.innerHTML=`<h3 style="margin:0 0 8px">Readiness Summary</h3><div class="summary-box"><div class="mini"><div class="n">${res.score}</div><div class="t">Health score</div></div><div class="mini"><div class="n">${res.ok}</div><div class="t">Checks passed</div></div><div class="mini"><div class="n">${res.fail}</div><div class="t">Failures</div></div></div><div class="readiness-grid"><div class="readiness-box"><h4>Recommended path</h4><ul><li>${data.platform==='Linux'?'Use the Linux OpenSSL script.':'Use the Windows output path that matches the host.'}</li><li>Generate on the target server or approved admin workstation.</li><li>Submit the original request file.</li></ul></div><div class="readiness-box"><h4>Environment snapshot</h4><ul><li>${data.platform} / ${data.osName} ${data.osVersion||''}</li><li>${data.server} ${data.iisVersion||data.apacheVersion||data.nginxVersion||''}</li><li>OpenSSL ${data.opensslVersion||'not provided'}</li><li>CN ${data.cn}</li></ul></div></div>`;}
+function renderAssessment(res){byId('resultArea').innerHTML=`<div class="readiness-card">${res.rows.map(r=>`<div class="panel ${r.status==='pass'?'ok':r.status==='fail'?'bad':'warn'}"><strong>${r.label}</strong>${r.detail}</div>`).join('')}</div>`; byId('scoreNumber').textContent=res.score; byId('scoreSub').textContent=`${res.ok} passed, ${res.warn} warnings, ${res.fail} failures`; byId('scoreBar').style.width=`${res.score}%`; byId('quickPills').innerHTML=`<div class="pill">Passed: ${res.ok}</div><div class="pill">Warnings: ${res.warn}</div><div class="pill">Failures: ${res.fail}</div>`;}
+function fillValidationChecklist(data){const sanText=data.sans.map(x=>`${x.type}:${x.value}`).join(', '); const set=(id,items)=>byId(id).innerHTML=items.map(x=>`<li>${x}</li>`).join(''); set('checkImmediateValidation',['Open the site in a browser and confirm HTTPS loads cleanly.',`Verify the certificate covers ${sanText}.`,'Confirm the presented certificate is the newly issued one.']); set('checkCertChain',['Check that the full chain is presented.','Confirm the issuing CA and intermediates are correct.','Verify the live certificate is ECC and not an unexpected fallback.']); set('checkServiceSpecific',[data.server==='IIS'?'Confirm the IIS binding uses the intended certificate.':'Confirm the service configuration points to the intended certificate and key.','Reload or restart the service cleanly.']); set('checkCloseOut',['Record the deployment time.','Keep evidence such as screenshot or command output.','Close the change only after successful live validation.']);}
+function downloadText(filename,content){const blob=new Blob([content],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);}
+function getActiveOutputArea(){if(byId('out-linux').classList.contains('active')) return byId('outputLinux'); if(byId('out-ps').classList.contains('active')) return byId('outputPS'); return byId('outputGUI');}
+function generateAll(){const data=readForm(); const errors=validate(data); if(errors.length){showFlash(errors[0],'bad'); showTab('tab-cert'); return;} byId('outputLinux').value=buildLinuxScript(data); byId('outputPS').value=buildWindowsPowerShell(data); byId('outputGUI').value=buildWindowsGUIGuidance(data); const res=assess(data); renderSummary(data,res); renderAssessment(res); fillValidationChecklist(data); lastDownloads=[{filename:`${data.fileBase}-linux-openssl.sh`,content:byId('outputLinux').value},{filename:`${data.fileBase}-windows-certreq.ps1`,content:byId('outputPS').value},{filename:`${data.fileBase}-windows-gui.txt`,content:byId('outputGUI').value}]; syncOutputTabs(); showTab('tab-output'); showFlash('ECC CSR scripts and checks were generated.','ok');}
+function resetAll(){location.reload();}
+qsa('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab))); qsa('#outputTabs .subtab-btn').forEach(btn=>btn.addEventListener('click',()=>activateOutputSubtab(btn.dataset.subtab))); qsa('.acc-head').forEach(btn=>btn.addEventListener('click',()=>toggleAcc(btn))); qsa('.collapsible-head').forEach(btn=>btn.addEventListener('click',()=>toggleCollapse(btn))); byId('platform').addEventListener('change',onPlatformChange); byId('server').addEventListener('change',onServerChange); byId('iisMethod').addEventListener('change',syncOutputTabs); byId('generateBtn').addEventListener('click',generateAll); byId('goOutputBtn').addEventListener('click',()=>showTab('tab-output')); byId('regenerateBtn').addEventListener('click',generateAll); byId('copyActiveBtn').addEventListener('click',async()=>{const area=getActiveOutputArea(); if(!area.value.trim()) return showFlash('Nothing to copy yet.','warn'); try{await navigator.clipboard.writeText(area.value); showFlash('Active output copied.','ok');}catch{showFlash('Clipboard access was blocked.','warn');}}); byId('downloadBtn').addEventListener('click',()=>{if(!lastDownloads.length) return showFlash('Nothing to download yet.','warn'); lastDownloads.forEach(f=>downloadText(f.filename,f.content)); showFlash('Download started.','ok');}); byId('resetBtn').addEventListener('click',resetAll); onPlatformChange();
+</script>
 
-    downloadBtn.addEventListener('click', () => {
-      if (!latestDecoded) return;
-      const blob = new Blob([JSON.stringify(latestDecoded, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'decoded.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
-    themeBtn.addEventListener('click', () => {
-      const dark = document.body.dataset.theme !== 'dark';
-      document.body.dataset.theme = dark ? 'dark' : 'light';
-      if (dark) {
-        document.documentElement.style.setProperty('--bg', '#020617');
-        document.documentElement.style.setProperty('--card', '#0f172a');
-        document.documentElement.style.setProperty('--text', '#e2e8f0');
-        document.documentElement.style.setProperty('--muted', '#94a3b8');
-        document.documentElement.style.setProperty('--line', '#1e293b');
-        document.documentElement.style.setProperty('--accent', '#e2e8f0');
-      } else {
-        document.documentElement.style.setProperty('--bg', '#f8fafc');
-        document.documentElement.style.setProperty('--card', '#ffffff');
-        document.documentElement.style.setProperty('--text', '#0f172a');
-        document.documentElement.style.setProperty('--muted', '#475569');
-        document.documentElement.style.setProperty('--line', '#e2e8f0');
-        document.documentElement.style.setProperty('--accent', '#0f172a');
-      }
-    });
-  </script>
+<script type="module">
+import * as asn1js from 'https://esm.sh/asn1js@3.0.5';
+import { setEngine, CryptoEngine, Certificate, CertificationRequest, CertificateRevocationList, ContentInfo, SignedData, getAlgorithmByOID } from 'https://esm.sh/pkijs@3.2.5';
+const webcrypto = globalThis.crypto; setEngine('browser', webcrypto, new CryptoEngine({ name:'browser', crypto:webcrypto, subtle:webcrypto.subtle }));
+const inputEl=document.getElementById('decoderInput'), resultsEl=document.getElementById('decoderResults'), errorBox=document.getElementById('decoderError'), fileInput=document.getElementById('decoderFileInput'), fileMeta=document.getElementById('decoderFileMeta'), decodeBtn=document.getElementById('decoderDecodeBtn'), downloadBtn=document.getElementById('decoderJsonBtn'), sslHostInput=document.getElementById('sslHostInput'), sslCheckBtn=document.getElementById('sslCheckBtn'), sslResults=document.getElementById('sslResults'), sslError=document.getElementById('sslError');
+const modeLocal=document.getElementById('modeLocal'), modeEdge=document.getElementById('modeEdge'); let mode='local', latestDecoded=null;
+qsa('#tab-decoder .subtab-btn').forEach(btn=>btn.addEventListener('click',()=>showSubtab(btn.dataset.subtab)));
+modeLocal.onclick=()=>setMode('local'); modeEdge.onclick=()=>setMode('edge'); document.getElementById('decoderLoadBtn').onclick=()=>fileInput.click();
+document.getElementById('decoderExampleBtn').onclick=()=>{inputEl.value=`-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUcQ4Ko1+Y0HcXN5xwK6gV3kJjj1owCgYIKoZIzj0EAwIw\nFTETMBEGA1UEAwwKZXhhbXBsZS5vcmcwHhcNMjYwMTAxMDAwMDAwWhcNMjcwMTAx\nMDAwMDAwWjAVMRMwEQYDVQQDDApleGFtcGxlLm9yZzBZMBMGByqGSM49AgEGCCqG\nSM49AwEHA0IABOY7I0XJzJrP6u8CDoQW3mqLqN7TFQ+mT0P0n0U9JYdofCkV5CA3\nKnnm6D9vKsm5wHe1Y1UeM7c7p3Rr4mHhlOijUzBRMB0GA1UdDgQWBBSW9tBUE+8W\nbV7s8Y0ItW6Xc0jP4TAfBgNVHSMEGDAWgBSW9tBUE+8WbV7s8Y0ItW6Xc0jP4TAP\nBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMCA0gAMEUCIB5Xyyc6c+4m3O0k1n9c\n6Sdcj9xk6vV8wK0K1xqM5Jw7AiEA7ZC1v6CM0eX9rNnFv3kqZQsm7Y0v3J5z5x5g\nb6k7d3s=\n-----END CERTIFICATE-----`;};
+function setMode(next){mode=next; modeLocal.classList.toggle('active',mode==='local'); modeEdge.classList.toggle('active',mode==='edge');}
+function showError(msg){errorBox.style.display='block'; errorBox.textContent=msg;} function clearError(){errorBox.style.display='none'; errorBox.textContent='';}
+function showSslError(msg){sslError.style.display='block'; sslError.textContent=msg;} function clearSslError(){sslError.style.display='none'; sslError.textContent='';}
+function escapeHtml(v){return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
+function base64ToArrayBuffer(base64){const binary=atob(base64.replace(/\s+/g,'')); const bytes=new Uint8Array(binary.length); for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i); return bytes.buffer;}
+function arrayBufferToBase64(buffer){let s=''; for(const b of new Uint8Array(buffer)) s+=String.fromCharCode(b); return btoa(s);} function hex(buffer){return [...new Uint8Array(buffer)].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();}
+async function digestHex(buffer,alg){return hex(await crypto.subtle.digest(alg, buffer.slice(0)));}
+function pemBlocks(text){const re=/-----BEGIN ([A-Z0-9 #\-]+)-----([\s\S]*?)-----END \1-----/g; const out=[]; let m; while((m=re.exec(text))!==null) out.push({label:m[1].trim(), der:base64ToArrayBuffer(m[2].replace(/\s+/g,''))}); return out;}
+function parseAsn1(der){const ber=asn1js.fromBER(der); if(ber.offset===-1) throw new Error('ASN.1 parse failed.'); return ber.result;}
+function oidName(oid){try{return getAlgorithmByOID(oid)?.name || oid;}catch{return oid;}}
+function nameToRows(name){const map={'2.5.4.3':'CN','2.5.4.10':'O','2.5.4.11':'OU','2.5.4.7':'L','2.5.4.8':'ST','2.5.4.6':'C','1.2.840.113549.1.9.1':'emailAddress'}; return (name.typesAndValues||[]).map(tv=>({field:map[tv.type]||tv.type, value:tv.value.valueBlock.value || tv.value.valueBlock.valueDec || String(tv.value.valueBlock.valueHex || '')}));}
+function formatName(name){return nameToRows(name).map(x=>`${x.field}=${x.value}`).join(', ');} function extName(oid){const map={'2.5.29.17':'Subject Alternative Name','2.5.29.15':'Key Usage','2.5.29.37':'Extended Key Usage','2.5.29.19':'Basic Constraints','2.5.29.35':'Authority Key Identifier','2.5.29.14':'Subject Key Identifier','2.5.29.31':'CRL Distribution Points','1.3.6.1.5.5.7.1.1':'Authority Information Access','2.5.29.32':'Certificate Policies'}; return map[oid]||oid;}
+function simpleExtensionValue(ext){try{ if(ext.parsedValue){ if(Array.isArray(ext.parsedValue.altNames)) return ext.parsedValue.altNames.map(x=>({type:x.type,value:x.value})); return JSON.parse(JSON.stringify(ext.parsedValue)); }}catch{} return {raw_hex:hex(ext.extnValue.valueBlock.valueHex)};}
+function validityChecks(notBefore,notAfter){const now=new Date(); if(now<notBefore) return {expired:false,notYetValid:true}; if(now>notAfter) return {expired:true,notYetValid:false}; return {expired:false,notYetValid:false};}
+function weakSig(sig){const s=String(sig).toLowerCase(); return s.includes('sha-1')||s.includes('sha1')||s.includes('md5');}
+function extractPublicKeyInfo(spki){const algorithm=spki.algorithm.algorithmId; const curve=spki.algorithm.algorithmParams?.valueBlock?.toString?.()||spki.algorithm.algorithmParams?.valueBlock?.value||null; let keySize=null; try{ if(algorithm==='1.2.840.113549.1.1.1'){const rsa=asn1js.fromBER(spki.subjectPublicKey.valueBlock.valueHexView.slice().buffer); keySize=rsa.result.valueBlock.value[0].valueBlock.valueHex.byteLength*8;} else if(algorithm==='1.2.840.10045.2.1'){keySize=spki.subjectPublicKey.valueBlock.valueHex.byteLength*8;} }catch{} return {algorithm:oidName(algorithm),key_size:keySize,curve};}
+async function decodeCertificate(der){const cert=new Certificate({schema:parseAsn1(der)}); const pub=extractPublicKeyInfo(cert.subjectPublicKeyInfo); const sig=oidName(cert.signatureAlgorithm.algorithmId); const state=validityChecks(cert.notBefore.value, cert.notAfter.value); return {type:'certificate',subject:nameToRows(cert.subject),issuer:nameToRows(cert.issuer),subject_display:formatName(cert.subject),issuer_display:formatName(cert.issuer),serial_number:hex(cert.serialNumber.valueBlock.valueHex),validity:{not_before:cert.notBefore.value.toISOString(),not_after:cert.notAfter.value.toISOString(),expired:state.expired,not_yet_valid:state.notYetValid},public_key:pub,signature_algorithm:sig,fingerprints:{sha256:await digestHex(der,'SHA-256'),sha1:await digestHex(der,'SHA-1')},extensions:(cert.extensions||[]).map(ext=>({oid:ext.extnID,name:extName(ext.extnID),value:simpleExtensionValue(ext)})),validations:[{label:'Validity window',status:state.expired||state.notYetValid?'fail':'pass',detail:state.expired?'Certificate has expired.':state.notYetValid?'Certificate is not yet valid.':'Certificate is currently valid.'},{label:'Signature algorithm',status:weakSig(sig)?'fail':'pass',detail:weakSig(sig)?`Weak signature algorithm detected: ${sig}.`:`Signature algorithm is ${sig}.`}]};}
+async function decodeCSR(der){const csr=new CertificationRequest({schema:parseAsn1(der)}); const pub=extractPublicKeyInfo(csr.subjectPublicKeyInfo); const sig=oidName(csr.signatureAlgorithm.algorithmId); let valid=false; try{valid=await csr.verify();}catch{} let requested_extensions=[]; for(const attr of (csr.attributes||[])){ if(attr.type==='1.2.840.113549.1.9.14'&&attr.values?.[0]) requested_extensions=(attr.values[0].extensions||[]).map(ext=>({oid:ext.extnID,name:extName(ext.extnID),value:simpleExtensionValue(ext)})); } return {type:'csr',subject:nameToRows(csr.subject),subject_display:formatName(csr.subject),public_key:pub,signature_algorithm:sig,signature_valid:valid,requested_extensions,validations:[{label:'CSR self-signature',status:valid?'pass':'fail',detail:valid?'CSR self-signature is valid.':'CSR self-signature is invalid.'}]};}
+async function decodeCRL(der){const crl=new CertificateRevocationList({schema:parseAsn1(der)}); return {type:'crl',issuer:nameToRows(crl.issuer),this_update:crl.thisUpdate.value.toISOString(),next_update:crl.nextUpdate?.value?.toISOString?.()||null,signature_algorithm:oidName(crl.signature.algorithmId),revoked_certificates:(crl.revokedCertificates||[]).map(entry=>({serial_number:hex(entry.userCertificate.valueBlock.valueHex),revocation_date:entry.revocationDate.value.toISOString()}))};}
+async function decodePKCS7orCMS(der){const contentInfo=new ContentInfo({schema:parseAsn1(der)}), out={type:'cms',content_type:contentInfo.contentType,certificates:[]}; if(contentInfo.contentType==='1.2.840.113549.1.7.2'){ const signed=new SignedData({schema:contentInfo.content}); for(const cert of (signed.certificates||[])){ try{ out.certificates.push(await decodeCertificate(cert.toSchema().toBER(false))); }catch{} } out.type='pkcs7'; } return out;}
+async function decodeOne(der){for(const fn of [decodeCertificate,decodeCSR,decodeCRL,decodePKCS7orCMS]){ try{return await fn(der);}catch{}} throw new Error('No supported PKI object found.');}
+async function localDecode(text){const objects=pemBlocks(text); const decoded=[]; const blocks=objects.length?objects:[{label:'BASE64_OR_DER',der:base64ToArrayBuffer(text)}]; for(const block of blocks){const item=await decodeOne(block.der); item.input_label=block.label; decoded.push(item);} return {objects:decoded,mode:'local'};}
+function badge(status){return `<span class="badge ${status}">${status.toUpperCase()}</span>`;} function kv(label,value,mono=false){return `<div class="kv"><div>${escapeHtml(label)}</div><div class="${mono?'mono':''}">${escapeHtml(value??'—')}</div></div>`;}
+function nameSection(title,rows=[]){return `<div class="result-card"><h4>${escapeHtml(title)}</h4>${rows.length?rows.map(r=>kv(r.field,r.value)).join(''):'<div class="muted">No values found.</div>'}</div>`;}
+function validationSection(rows=[]){return `<div class="result-card"><h4>Validation</h4>${rows.map(r=>`<div class="kv"><div>${escapeHtml(r.label)}</div><div>${badge(r.status)}<div class="small-note" style="margin-top:6px">${escapeHtml(r.detail)}</div></div></div>`).join('')}</div>`;}
+function extSection(title,exts=[]){return `<div class="result-card"><h4>${escapeHtml(title)}</h4>${exts.length?exts.map((ext,i)=>`<details ${i<1?'open':''}><summary>${escapeHtml(ext.name)} <span class="small-note">(${escapeHtml(ext.oid)})</span></summary><pre>${escapeHtml(JSON.stringify(ext.value,null,2))}</pre></details>`).join(''):'<div class="muted">No entries found.</div>'}</div>`;}
+function renderObject(obj){if(obj.type==='certificate') return `<article class="result-card"><h3>X.509 Certificate</h3><div class="small-note" style="margin-bottom:12px">${escapeHtml(obj.subject_display||'')}</div>${validationSection(obj.validations)}${nameSection('Subject',obj.subject)}${nameSection('Issuer',obj.issuer)}<div class="result-card"><h4>Certificate Details</h4>${kv('Serial Number',obj.serial_number,true)}${kv('Not Before',obj.validity.not_before,true)}${kv('Not After',obj.validity.not_after,true)}${kv('Public Key Algorithm',obj.public_key.algorithm)}${kv('Key Size',obj.public_key.key_size?`${obj.public_key.key_size} bits`:'—')}${kv('Curve',obj.public_key.curve)}${kv('Signature Algorithm',obj.signature_algorithm)}${kv('SHA-256 Fingerprint',obj.fingerprints.sha256,true)}${kv('SHA-1 Fingerprint',obj.fingerprints.sha1,true)}</div>${extSection('Extensions',obj.extensions)}`; if(obj.type==='csr') return `<article class="result-card"><h3>Certificate Signing Request</h3><div class="small-note" style="margin-bottom:12px">${escapeHtml(obj.subject_display||'')}</div>${validationSection(obj.validations)}${nameSection('Subject',obj.subject)}<div class="result-card"><h4>CSR Details</h4>${kv('Public Key Algorithm',obj.public_key.algorithm)}${kv('Key Size',obj.public_key.key_size?`${obj.public_key.key_size} bits`:'—')}${kv('Curve',obj.public_key.curve)}${kv('Signature Algorithm',obj.signature_algorithm)}${kv('Signature Valid',String(obj.signature_valid))}</div>${extSection('Requested Extensions',obj.requested_extensions)}`; if(obj.type==='crl') return `<article class="result-card"><h3>Certificate Revocation List</h3>${nameSection('Issuer',obj.issuer)}<div class="result-card"><h4>CRL Details</h4>${kv('This Update',obj.this_update,true)}${kv('Next Update',obj.next_update,true)}${kv('Signature Algorithm',obj.signature_algorithm)}</div><div class="result-card"><h4>Revoked Certificates</h4><pre>${escapeHtml(JSON.stringify(obj.revoked_certificates,null,2))}</pre></div></article>`; if(obj.type==='pkcs7'||obj.type==='cms') return `<article class="result-card"><h3>${escapeHtml(obj.type.toUpperCase())} Object</h3><div class="small-note">Content type: ${escapeHtml(obj.content_type||'')}</div>${obj.certificates?.length?obj.certificates.map(renderObject).join(''):`<pre>${escapeHtml(JSON.stringify(obj,null,2))}</pre>`}</article>`; return `<article class="result-card"><pre>${escapeHtml(JSON.stringify(obj,null,2))}</pre></article>`;}
+fileInput.addEventListener('change', async (e)=>{const file=e.target.files?.[0]; if(!file) return; fileMeta.textContent=`Loaded file: ${file.name}`; const bytes=new Uint8Array(await file.arrayBuffer()); const text=new TextDecoder('utf-8',{fatal:false}).decode(bytes); inputEl.value=text.includes('-----BEGIN ')?text:arrayBufferToBase64(bytes.buffer);});
+downloadBtn.addEventListener('click',()=>{if(!latestDecoded) return; const blob=new Blob([JSON.stringify(latestDecoded,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='decoded.json'; a.click(); URL.revokeObjectURL(url);});
+sslCheckBtn.addEventListener('click', async ()=>{clearSslError(); sslResults.innerHTML=''; try{sslCheckBtn.disabled=true; sslCheckBtn.textContent='Checking…'; const hostname=sslHostInput.value.trim(); if(!hostname) throw new Error('Hostname is empty.'); const payload=await fetch('/api/ssl-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hostname})}).then(async r=>{const j=await r.json(); if(!r.ok) throw new Error(j.detail||'SSL check failed.'); return j;}); const head=`<article class="result-card"><h3>TLS Session</h3>${kv('Hostname',payload.hostname)}${kv('Port',String(payload.port))}${kv('Protocol',payload.tls?.protocol)}${kv('Cipher',payload.tls?.cipher?.name || payload.tls?.cipher?.standardName || '—')}${kv('Authorised',String(payload.tls?.authorized))}${kv('Authorisation Error',payload.tls?.authorizationError || '—')}</article>`; sslResults.innerHTML=head + (payload.chain?.map(renderObject).join('') || '<div class="small-note">No certificates returned.</div>'); }catch(e){showSslError(e.message||'SSL check failed.');}finally{sslCheckBtn.disabled=false; sslCheckBtn.textContent='Check Hostname';}});
+decodeBtn.addEventListener('click', async ()=>{clearError(); resultsEl.innerHTML=''; latestDecoded=null; downloadBtn.disabled=true; try{decodeBtn.disabled=true; decodeBtn.textContent='Decoding…'; const text=inputEl.value.trim(); if(!text) throw new Error('Input is empty.'); const payload=mode==='local'?await localDecode(text):await fetch('/api/decode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:text})}).then(async r=>{const j=await r.json(); if(!r.ok) throw new Error(j.detail||'Edge decode failed.'); return j;}); latestDecoded=payload; resultsEl.innerHTML=payload.objects.map(renderObject).join(''); downloadBtn.disabled=false; }catch(e){showError(e.message||'Decode failed.');}finally{decodeBtn.disabled=false; decodeBtn.textContent='Decode';}});
+</script>
 </body>
 </html>
