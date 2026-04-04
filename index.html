@@ -1600,6 +1600,7 @@
     applyEnvironmentRules();
     syncOutputTabs();
   }
+
   function applyEnvironmentRules(){
     const platform = byId("platform").value;
     const server = byId("server").value;
@@ -1608,7 +1609,67 @@
     (rules.default || []).forEach(id => show(id, true));
     (rules[server] || []).forEach(id => show(id, true));
   }
-  function onServerChange(){ applyEnvironmentRules(); syncOutputTabs(); }
+
+  function onServerChange(){
+    applyEnvironmentRules();
+    syncOutputTabs();
+  }
+
+  function syncOutputTabs(){
+    const platform = byId("platform").value;
+    const server = byId("server").value;
+    const iisMethod = byId("iisMethod") ? byId("iisMethod").value : "powershell";
+
+    const btnLinux = byId("btnOutLinux");
+    const btnPS = byId("btnOutPS");
+    const btnGUI = byId("btnOutGUI");
+    const panelLinux = byId("out-linux");
+    const panelPS = byId("out-ps");
+    const panelGUI = byId("out-gui");
+
+    [btnLinux, btnPS, btnGUI].forEach(el => el.style.display = "none");
+    [panelLinux, panelPS, panelGUI].forEach(el => {
+      el.classList.remove("active");
+      el.style.display = "none";
+    });
+    document.querySelectorAll(".subtab-btn").forEach(b => b.classList.remove("active"));
+
+    if (platform === "Linux") {
+      btnLinux.style.display = "";
+      panelLinux.style.display = "block";
+      showSubtab("out-linux", btnLinux);
+      return;
+    }
+
+    if (server === "IIS") {
+      if (iisMethod === "powershell") {
+        btnPS.style.display = "";
+        panelPS.style.display = "block";
+        showSubtab("out-ps", btnPS);
+      } else if (iisMethod === "gui") {
+        btnGUI.style.display = "";
+        panelGUI.style.display = "block";
+        showSubtab("out-gui", btnGUI);
+      } else {
+        btnPS.style.display = "";
+        btnGUI.style.display = "";
+        panelPS.style.display = "block";
+        panelGUI.style.display = "block";
+        showSubtab("out-ps", btnPS);
+      }
+      return;
+    }
+
+    btnPS.style.display = "";
+    panelPS.style.display = "block";
+    showSubtab("out-ps", btnPS);
+  }
+
+  function showOutputTabExplicitly(){
+    const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => (b.getAttribute('onclick') || '').includes('tab-output'));
+    showTab('tab-output', btn || null);
+  }
+
   function normalise(v){
     return String(v || "").trim();
   }
@@ -1688,6 +1749,7 @@
       apacheVersion: normalise(byId("apacheVersion").value),
       xamppVersion: normalise(byId("xamppVersion").value),
       phpVersion: normalise(byId("phpVersion").value),
+      javaVersion: byId("javaVersion") ? normalise(byId("javaVersion").value) : "",
       opensslVersion: normalise(byId("opensslVersion").value),
       opensshVersion: normalise(byId("opensshVersion").value),
       cn: normalise(byId("cn").value),
@@ -2391,7 +2453,7 @@ MIICMDCCAbUCAQAwgc4xCzAJBgNVBAYTAk1ZMSYwJAYDVQQIDB1XaWxheWFoIFBlcnNla3V0dWFuIFB1
   function generateExampleCSR(){ return EXAMPLE_ECC_CSR; }
   function resetAll(){
     [
-      "osVersion","iisVersion","nginxVersion","apacheVersion","xamppVersion","phpVersion","javaVersion",
+      "osVersion","iisVersion","nginxVersion","apacheVersion","xamppVersion","phpVersion","javaVersion","javaVersion",
       "opensslVersion","opensshVersion","cn","san","org","ou","city","state","country","email",
       "outputLinux","outputPS","outputGUI","pemInput"
     ].forEach(id => {
