@@ -171,10 +171,8 @@ function extractAiaUrls(infoAccess) {
   const result = { ocsp: [], caIssuers: [] };
   if (!infoAccess) return result;
   if (typeof infoAccess === 'string') {
-    const ocspMatches = [...infoAccess.matchAll(/OCSP\s*-\s*URI:([^
-]+)/gi)].map(m => m[1].trim());
-    const caMatches = [...infoAccess.matchAll(/CA\s*Issuers\s*-\s*URI:([^
-]+)/gi)].map(m => m[1].trim());
+    const ocspMatches = [...infoAccess.matchAll(/OCSP\s*-\s*URI:([^\n]+)/gi)].map(m => m[1].trim());
+    const caMatches = [...infoAccess.matchAll(/CA\s*Issuers\s*-\s*URI:([^\n]+)/gi)].map(m => m[1].trim());
     result.ocsp.push(...ocspMatches);
     result.caIssuers.push(...caMatches);
     return result;

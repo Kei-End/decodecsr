@@ -15,9 +15,9 @@ This project keeps the **ECC CSR Generate Assistant** as the main page and moves
 ### Main assistant
 - Environment and stack guidance
 - ECC P-384 CSR input form
-- Linux OpenSSL script output
-- Windows PowerShell + certreq output
-- Windows IIS GUI guidance
+- Linux OpenSSL script output with server-aware deployment notes
+- Windows PowerShell + certreq output with SAN-aware INF generation
+- Windows IIS GUI guidance with provider and binding reminders
 - Readiness summary and post-deployment checklist
 
 ### Decoder tab

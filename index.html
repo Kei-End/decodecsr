@@ -212,12 +212,127 @@ function readForm(){const data={platform:normalise(byId('platform').value),osNam
 function validate(data){const errors=[]; ['cn','org','ou','city','state','country'].forEach(k=>{if(!data[k]) errors.push(`Missing ${k.toUpperCase()}.`);}); if(data.country&&data.country.length!==2) errors.push('Country must be a valid 2-letter code.'); if(!isValidHostname(data.cn)) errors.push('CN must be a valid DNS name.'); if(data.sans.length===0) errors.push('At least one valid SAN entry is required.'); return errors;}
 function sanOpenSslParts(sans){return sans.map(item=>`${item.type}:${item.value}`).join(',');}
 function sanInfLines(sans){const values=sans.map(item=>`${item.type}=${item.value}`); return values.map((v,i)=>`_continue_ = "${v}${i<values.length-1?'&':''}"`).join('\n');}
-function buildLinuxScript(data){const keyFile=`${data.fileBase}.key`,csrFile=`${data.fileBase}.csr`,confFile=`${data.fileBase}-csr.conf`; return `# Linux ECC CSR generation\nset -euo pipefail\n\ncat > "${confFile}" <<'EOF'\n[ req ]\ndefault_md = sha256\nprompt = no\ndistinguished_name = dn\nreq_extensions = req_ext\n\n[ dn ]\nC = ${data.country}\nST = ${data.state}\nL = ${data.city}\nO = ${data.org}\nOU = ${data.ou}\nCN = ${data.cn}${data.email?`\nemailAddress = ${data.email}`:''}\n\n[ req_ext ]\nsubjectAltName = ${sanOpenSslParts(data.sans)}\nkeyUsage = critical,digitalSignature,keyAgreement\nEOF\n\nopenssl ecparam -name secp384r1 -genkey -noout -out "${keyFile}"\nopenssl req -new -sha256 -key "${keyFile}" -out "${csrFile}" -config "${confFile}"\nopenssl req -in "${csrFile}" -noout -text\n`;}
-function buildWindowsINF(data){return `[Version]\nSignature="$Windows NT$"\n\n[NewRequest]\nSubject = "CN=${data.cn}, O=${data.org}, OU=${data.ou}, L=${data.city}, S=${data.state}, C=${data.country}${data.email?`, E=${data.email}`:''}"\nMachineKeySet = TRUE\nExportable = FALSE\nRequestType = PKCS10\nKeyAlgorithm = ECDSA_P384\nKeyLength = 384\nHashAlgorithm = SHA256\nProviderName = "Microsoft Software Key Storage Provider"\nKeyUsage = 0x80\n\n[Extensions]\n2.5.29.17 = "{text}"\n${sanInfLines(data.sans)}\n`}
-function buildWindowsPowerShell(data){const infName=`${data.fileBase}-request.inf`, reqName=`${data.fileBase}-request.req`; return `# Windows PowerShell ECC CSR generation\n$InfPath = Join-Path (Get-Location) "${infName}"\n$ReqPath = Join-Path (Get-Location) "${reqName}"\n$InfContent = @"\n${buildWindowsINF(data).replace(/`/g,'``')}\n"@\nSet-Content -Path $InfPath -Value $InfContent -Encoding ascii\ncertreq -new $InfPath $ReqPath\nWrite-Host "Request file created:" $ReqPath\n`}
-function buildWindowsGUIGuidance(data){return `# IIS GUI guidance\n1. Open IIS Manager\n2. Open Server Certificates\n3. Create Certificate Request\n4. Use CN ${data.cn}\n5. Choose Microsoft Software Key Storage Provider\n6. Choose 384-bit ECC path\n7. Save the CSR and verify SAN handling before submission\n`;}
+function buildLinuxScript(data){const keyFile=`${data.fileBase}.key`,csrFile=`${data.fileBase}.csr`,confFile=`${data.fileBase}-csr.conf`; const installHint=data.server==='Nginx'?`# Nginx reminder
+# ssl_certificate     /etc/nginx/ssl/${data.fileBase}.crt;
+# ssl_certificate_key /etc/nginx/ssl/${keyFile};
+# nginx -t && systemctl reload nginx`:(data.server==='Apache'?`# Apache reminder
+# SSLCertificateFile    /etc/httpd/ssl/${data.fileBase}.crt
+# SSLCertificateKeyFile /etc/httpd/ssl/${keyFile}
+# apachectl -t && systemctl reload httpd`:(data.server==='Tomcat'?`# Tomcat reminder
+# Convert the issued certificate and key to PKCS#12 when required by your connector.
+# Keep the private key under controlled access.`:`# Generic reminder
+# Store the issued certificate and private key in the approved service path.`)); return `# Linux ECC CSR generation
+# Target curve: secp384r1 (P-384)
+# Hash: SHA-256
+# Server family: ${data.server || 'Generic Linux'}
+# OpenSSL reported: ${data.opensslVersion || 'not provided'}
+
+set -euo pipefail
+umask 077
+
+KEY_FILE="${keyFile}"
+CSR_FILE="${csrFile}"
+CONF_FILE="${confFile}"
+
+cat > "$CONF_FILE" <<'EOF'
+[ req ]
+default_md = sha256
+prompt = no
+distinguished_name = dn
+req_extensions = req_ext
+
+[ dn ]
+C = ${data.country}
+ST = ${data.state}
+L = ${data.city}
+O = ${data.org}
+OU = ${data.ou}
+CN = ${data.cn}${data.email?`
+emailAddress = ${data.email}`:''}
+
+[ req_ext ]
+subjectAltName = ${sanOpenSslParts(data.sans)}
+keyUsage = critical,digitalSignature,keyAgreement
+extendedKeyUsage = serverAuth
+EOF
+
+openssl version
+openssl ecparam -name secp384r1 -genkey -noout -out "$KEY_FILE"
+openssl req -new -sha256 -key "$KEY_FILE" -out "$CSR_FILE" -config "$CONF_FILE"
+openssl req -in "$CSR_FILE" -noout -text
+
+echo "CSR created: $CSR_FILE"
+echo "Private key created: $KEY_FILE"
+
+${installHint}
+`;}
+function buildWindowsINF(data){const machineKey=data.server==='IIS'?'TRUE':'TRUE'; const exportable=data.server==='IIS'?'FALSE':'FALSE'; return `[Version]
+Signature="$Windows NT$"
+
+[NewRequest]
+Subject = "CN=${data.cn}, O=${data.org}, OU=${data.ou}, L=${data.city}, S=${data.state}, C=${data.country}${data.email?`, E=${data.email}`:''}"
+MachineKeySet = ${machineKey}
+Exportable = ${exportable}
+RequestType = PKCS10
+KeyAlgorithm = ECDSA_P384
+KeyLength = 384
+HashAlgorithm = SHA256
+ProviderName = "Microsoft Software Key Storage Provider"
+KeyUsage = 0x80
+FriendlyName = "${data.cn} ECC P-384"
+SMIME = FALSE
+
+[Extensions]
+2.5.29.17 = "{text}"
+${sanInfLines(data.sans)}
+
+[EnhancedKeyUsageExtension]
+OID=1.3.6.1.5.5.7.3.1
+`}
+function buildWindowsPowerShell(data){const infName=`${data.fileBase}-request.inf`, reqName=`${data.fileBase}-request.req`; const acceptNote=data.server==='IIS'?'Write-Host "After issuance, accept the certificate and bind it in IIS Server Certificates / Site Bindings."':'Write-Host "After issuance, import or accept the certificate in the intended Windows store or application path."'; return `# Windows PowerShell ECC CSR generation
+# Target curve: P-384
+# Hash: SHA-256
+# Windows stack: ${data.server}${data.iisVersion?` ${data.iisVersion}`:''}
+
+$InfPath = Join-Path (Get-Location) "${infName}"
+$ReqPath = Join-Path (Get-Location) "${reqName}"
+
+$InfContent = @"
+${buildWindowsINF(data).replace(/`/g,'``')}
+"@
+
+Set-Content -Path $InfPath -Value $InfContent -Encoding ascii
+Write-Host "Generating ECC CSR request..." -ForegroundColor Cyan
+certreq -new $InfPath $ReqPath
+Write-Host "Request file created:" $ReqPath -ForegroundColor Green
+Write-Host "INF file created:" $InfPath -ForegroundColor Green
+Write-Host "Submit the original .req file to the CA."
+${acceptNote}
+Write-Host "Accept command example: certreq -accept .\issued.cer"
+`;}
+function buildWindowsGUIGuidance(data){return `# IIS GUI guidance
+# Intended profile: ECC P-384 with SHA-256
+# Host: ${data.cn}
+
+1. Open IIS Manager.
+2. Select the server node, then open Server Certificates.
+3. Choose Create Certificate Request.
+4. Populate the subject fields exactly as follows:
+   - CN = ${data.cn}
+   - O  = ${data.org}
+   - OU = ${data.ou}
+   - L  = ${data.city}
+   - ST = ${data.state}
+   - C  = ${data.country}
+5. Under cryptographic options choose:
+   - Provider: Microsoft Software Key Storage Provider
+   - Bit length / ECC path: 384-bit
+6. Save the CSR to an approved location.
+7. Review the request carefully. If SAN must be embedded in the CSR itself, prefer the PowerShell + certreq path because it gives tighter control over SAN entries.
+8. After issuance, complete the request and bind the certificate to the intended IIS site.
+`;}
 function assess(data){let score=100,ok=0,warn=0,fail=0; const rows=[]; const push=(label,status,detail)=>{rows.push({label,status,detail}); if(status==='pass') ok++; if(status==='warning'){warn++; score-=10;} if(status==='fail'){fail++; score-=25;}}; const opensslCmp=data.opensslVersion?compareVersions(data.opensslVersion,KB.baselines.opensslMin):null; push('SAN presence',data.sans.length?'pass':'fail',data.sans.length?`${data.sans.length} SAN value(s) present.`:'No valid SAN value found.'); push('OpenSSL baseline',!data.opensslVersion?'warning':opensslCmp===null?'warning':opensslCmp<0?'fail':'pass',data.opensslVersion?`Detected ${data.opensslVersion}.`:'OpenSSL version not provided.'); if(data.platform==='Windows'){const year=extractWindowsYear(data.osVersion)||extractMajor(data.osVersion); push('Windows baseline',year&&year>=KB.baselines.windowsMinYear?'pass':year?'fail':'warning',data.osVersion||'Windows version not provided.'); if(data.server==='IIS'){const iisCmp=data.iisVersion?compareVersions(data.iisVersion,KB.baselines.iisMinMajor):null; push('IIS baseline',!data.iisVersion?'warning':iisCmp===null?'warning':iisCmp<0?'fail':'pass',data.iisVersion||'IIS version not provided.');}} if(data.platform==='Linux'&&data.osName==='CentOS'){const major=extractMajor(data.osVersion); push('CentOS baseline',major&&major>=KB.baselines.linuxCentOSMin?'pass':major?'fail':'warning',data.osVersion||'CentOS version not provided.');} return {score:Math.max(0,score),ok,warn,fail,rows};}
-function renderSummary(data,res){const box=byId('readinessSummary'); box.style.display='block'; box.innerHTML=`<h3 style="margin:0 0 8px">Readiness Summary</h3><div class="summary-box"><div class="mini"><div class="n">${res.score}</div><div class="t">Health score</div></div><div class="mini"><div class="n">${res.ok}</div><div class="t">Checks passed</div></div><div class="mini"><div class="n">${res.fail}</div><div class="t">Failures</div></div></div><div class="readiness-grid"><div class="readiness-box"><h4>Recommended path</h4><ul><li>${data.platform==='Linux'?'Use the Linux OpenSSL script.':'Use the Windows output path that matches the host.'}</li><li>Generate on the target server or approved admin workstation.</li><li>Submit the original request file.</li></ul></div><div class="readiness-box"><h4>Environment snapshot</h4><ul><li>${data.platform} / ${data.osName} ${data.osVersion||''}</li><li>${data.server} ${data.iisVersion||data.apacheVersion||data.nginxVersion||''}</li><li>OpenSSL ${data.opensslVersion||'not provided'}</li><li>CN ${data.cn}</li></ul></div></div>`;}
+function renderSummary(data,res){const box=byId('readinessSummary'); const path=data.platform==='Linux'?(data.server==='Nginx'?'Use the Linux OpenSSL script, then map the issued certificate into the Nginx ssl_certificate / ssl_certificate_key path.':data.server==='Apache'?'Use the Linux OpenSSL script, then plan the Apache SSL vhost update and reload.':'Use the Linux OpenSSL script for the target host.'):(data.server==='IIS'?(data.iisMethod==='gui'?'Use the IIS GUI guidance only if SAN handling is acceptable in your environment.':'Use the PowerShell + certreq path so SAN handling stays explicit.'):'Use the Windows PowerShell output that matches the host.'); box.style.display='block'; box.innerHTML=`<h3 style="margin:0 0 8px">Readiness Summary</h3><div class="summary-box"><div class="mini"><div class="n">${res.score}</div><div class="t">Health score</div></div><div class="mini"><div class="n">${res.ok}</div><div class="t">Checks passed</div></div><div class="mini"><div class="n">${res.fail}</div><div class="t">Failures</div></div></div><div class="readiness-grid"><div class="readiness-box"><h4>Recommended path</h4><ul><li>${path}</li><li>Generate on the target server or approved admin workstation.</li><li>Submit the original request file.</li><li>Retain the key under controlled access.</li></ul></div><div class="readiness-box"><h4>Environment snapshot</h4><ul><li>${data.platform} / ${data.osName} ${data.osVersion||''}</li><li>${data.server} ${data.iisVersion||data.apacheVersion||data.nginxVersion||''}</li><li>OpenSSL ${data.opensslVersion||'not provided'}</li><li>CN ${data.cn}</li></ul></div><div class="readiness-box"><h4>Target-specific reminders</h4><ul>${data.server==='IIS'?'<li>Check provider choice carefully in the request wizard.</li><li>Prefer PowerShell when SAN values must be controlled directly.</li>':data.server==='Nginx'?'<li>Validate nginx -t before reload.</li><li>Keep the certificate and key file path aligned with the live server block.</li>':data.server==='Apache'?'<li>Validate the SSL vhost before reload.</li><li>Confirm the certificate file and key file are mapped to the intended virtual host.</li>':'<li>Review the target application import path before deployment.</li>'}</ul></div><div class="readiness-box"><h4>Submission discipline</h4><ul><li>Use the original generated request file.</li><li>Do not copy CSR content through chat or email unless formally approved.</li><li>Verify CN and SAN one final time before submission.</li></ul></div></div>`;}
 function renderAssessment(res){byId('resultArea').innerHTML=`<div class="readiness-card">${res.rows.map(r=>`<div class="panel ${r.status==='pass'?'ok':r.status==='fail'?'bad':'warn'}"><strong>${r.label}</strong>${r.detail}</div>`).join('')}</div>`; byId('scoreNumber').textContent=res.score; byId('scoreSub').textContent=`${res.ok} passed, ${res.warn} warnings, ${res.fail} failures`; byId('scoreBar').style.width=`${res.score}%`; byId('quickPills').innerHTML=`<div class="pill">Passed: ${res.ok}</div><div class="pill">Warnings: ${res.warn}</div><div class="pill">Failures: ${res.fail}</div>`;}
 function fillValidationChecklist(data){const sanText=data.sans.map(x=>`${x.type}:${x.value}`).join(', '); const set=(id,items)=>byId(id).innerHTML=items.map(x=>`<li>${x}</li>`).join(''); set('checkImmediateValidation',['Open the site in a browser and confirm HTTPS loads cleanly.',`Verify the certificate covers ${sanText}.`,'Confirm the presented certificate is the newly issued one.']); set('checkCertChain',['Check that the full chain is presented.','Confirm the issuing CA and intermediates are correct.','Verify the live certificate is ECC and not an unexpected fallback.']); set('checkServiceSpecific',[data.server==='IIS'?'Confirm the IIS binding uses the intended certificate.':'Confirm the service configuration points to the intended certificate and key.','Reload or restart the service cleanly.']); set('checkCloseOut',['Record the deployment time.','Keep evidence such as screenshot or command output.','Close the change only after successful live validation.']);}
 function downloadText(filename,content){const blob=new Blob([content],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);}
