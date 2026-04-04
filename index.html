@@ -1472,7 +1472,7 @@
           </div>
 
           <div class="reference">
-            Manual alignment note: the attached document lists ECC/ECDSA with P-384 and SHA-256, Windows Server 2016+ for IIS, and OpenSSL 1.1.1+ for Nginx and Apache. :contentReference[oaicite:1]{index=1}
+            Manual alignment note: the attached document lists ECC/ECDSA with P-384 and SHA-256, Windows Server 2016+ for IIS, and OpenSSL 1.1.1+ for Nginx and Apache.
           </div>
         </div>
       </div>
@@ -1542,6 +1542,8 @@
   let lastFormData = null;
 
   function byId(id){ return document.getElementById(id); }
+
+  function sanitizeUiText(str){ return String(str || "").replace(/:contentReference\[.*?\]\{.*?\}/g, ""); }
 
   function showTab(tabId, btn){
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
@@ -2360,7 +2362,7 @@ MIICMDCCAbUCAQAwgc4xCzAJBgNVBAYTAk1ZMSYwJAYDVQQIDB1XaWxheWFoIFBlcnNla3V0dWFuIFB1
         </button>
         <div class="decoder-section-body">
           <div class="panel ${panelClass}" style="margin:0 0 12px 0; padding:18px 18px 16px 18px;">
-            <div class="csr-status-strong"><span>${statusIcon}</span><span>${statusTitle}</span></div>
+            <div class="csr-status-strong"><span>${statusTitle}</span><span style="margin-left:6px;">${statusIcon}</span></div>
             <div class="csr-status-desc-tight">${statusDesc}</div>
           </div>
           <table class="mini-table decoder-policy-table">
