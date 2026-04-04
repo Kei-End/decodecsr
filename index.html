@@ -288,11 +288,11 @@
             <label for="phpVersion">PHP version</label>
             <input id="phpVersion" placeholder="Example: 8.1.0">
           </div>
-          <div class="field">
+          <div class="field" id="field_opensslVersion">
             <label for="opensslVersion">OpenSSL version</label>
             <input id="opensslVersion" placeholder="Example: 1.1.1 or 3.0.2">
           </div>
-          <div class="field">
+          <div class="field" id="field_opensshVersion">
             <label for="opensshVersion">OpenSSH version</label>
             <input id="opensshVersion" placeholder="Optional">
           </div>
@@ -623,13 +623,19 @@ function onPlatformChange(){
 function setHidden(id, hidden){ byId(id).hidden = hidden; }
 
 function onServerChange(){
+  const platform = byId('platform').value;
   const server = byId('server').value;
-  setHidden('field_iisVersion', server !== 'IIS');
-  setHidden('field_iisMethod', server !== 'IIS');
+  const showOpenSSL = platform === 'Linux' || ['Apache','Nginx','XAMPP'].includes(server);
+  const showOpenSSH = platform === 'Linux';
+
+  setHidden('field_iisVersion', !(platform === 'Windows' && server === 'IIS'));
+  setHidden('field_iisMethod', !(platform === 'Windows' && server === 'IIS'));
   setHidden('field_nginxVersion', server !== 'Nginx');
   setHidden('field_apacheVersion', !(server === 'Apache' || server === 'XAMPP'));
   setHidden('field_xamppVersion', server !== 'XAMPP');
   setHidden('field_phpVersion', server !== 'XAMPP');
+  setHidden('field_opensslVersion', !showOpenSSL);
+  setHidden('field_opensshVersion', !showOpenSSH);
   syncOutputTabs();
 }
 
@@ -1542,6 +1548,7 @@ function renderCSR(pem){
         <span class="decoder-chip">Certificate Signing Request</span>
         ${isEc ? '<span class="decoder-badge decoder-badge-valid">✅ ECC</span>' : '<span class="decoder-badge decoder-badge-expired">❌ Non-ECC</span>'}
       </div>
+      ${renderPolicySection(policyChecks)}
       ${decoderSection('Subject', `
         <div class="decoder-kv-grid">
           ${decoderKv('CN', getDNValue(csr.subject, 'CN'))}
@@ -1552,17 +1559,17 @@ function renderCSR(pem){
           ${decoderKv('C', getDNValue(csr.subject, 'C'))}
           ${decoderKv('emailAddress', getDNValue(csr.subject, 'emailAddress'))}
         </div>`)}
+      ${decoderSection('Requested Extensions', `
+        <div class="decoder-kv-grid">
+          ${decoderKvHtml('SANs', `<ul class="decoder-list">${(csr.sans.length ? csr.sans : ['N/A']).map(v => `<li>${escapeHtml(v)}</li>`).join('')}</ul>`)}
+          ${decoderKv('Key Usage', csr.keyUsage.length ? csr.keyUsage.join(', ') : 'N/A', true)}
+        </div>`)}
       ${decoderSection('Public Key', `
         <div class="decoder-kv-grid">
           ${decoderKv('Algorithm', csr.publicKeyAlgorithm)}
           ${decoderKv('Curve', csr.curveName, true)}
           ${decoderKv('Key Size', csr.keySize)}
           ${decoderLongValueSection('Public Key Hex', csr.pubHex)}
-        </div>`)}
-      ${decoderSection('Requested Extensions', `
-        <div class="decoder-kv-grid">
-          ${decoderKvHtml('SANs', `<ul class="decoder-list">${(csr.sans.length ? csr.sans : ['N/A']).map(v => `<li>${escapeHtml(v)}</li>`).join('')}</ul>`)}
-          ${decoderKv('Key Usage', csr.keyUsage.length ? csr.keyUsage.join(', ') : 'N/A', true)}
         </div>`)}
       ${decoderSection('Signature', `
         <div class="decoder-kv-grid">
@@ -1572,7 +1579,6 @@ function renderCSR(pem){
           ${decoderKvCode('SHA-1 Fingerprint', csr.sha1Fingerprint, true)}
           ${decoderKvCode('MD5 Fingerprint', csr.md5Fingerprint, true)}
         </div>`)}
-      ${renderPolicySection(policyChecks)}
       ${decoderSection('Raw CSR', `<div class="decoder-kv-grid">${decoderLongValueSection('PEM', pem)}</div>`, true)}
     </div>`;
   attachDecoderBehaviours();
