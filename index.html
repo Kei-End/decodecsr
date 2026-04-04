@@ -1598,6 +1598,25 @@
     return !!el && el.style.display !== "none";
   }
 
+  function getVisibleEnvironmentSnapshot(data){
+    const items = [
+      `${data.platform} / ${data.osName} ${data.osVersion || "(version not provided)"}`
+    ];
+
+    if (data.server) items.push(`${data.server}`);
+    if (isFieldVisible("field_iisVersion") && data.iisVersion) items.push(`IIS ${data.iisVersion}`);
+    if (isFieldVisible("field_apacheVersion") && data.apacheVersion) items.push(`Apache ${data.apacheVersion}`);
+    if (isFieldVisible("field_nginxVersion") && data.nginxVersion) items.push(`Nginx ${data.nginxVersion}`);
+    if (isFieldVisible("field_xamppVersion") && data.xamppVersion) items.push(`XAMPP ${data.xamppVersion}`);
+    if (isFieldVisible("field_phpVersion") && data.phpVersion) items.push(`PHP ${data.phpVersion}`);
+    if (isFieldVisible("field_javaVersion") && data.javaVersion) items.push(`Java ${data.javaVersion}`);
+    if (isFieldVisible("field_opensslVersion") && data.opensslVersion) items.push(`OpenSSL ${data.opensslVersion}`);
+    if (isFieldVisible("field_opensshVersion") && data.opensshVersion) items.push(`OpenSSH ${data.opensshVersion}`);
+    if (data.cn) items.push(`CN ${data.cn}`);
+
+    return items.map(x => `<li>${x}</li>`).join("");
+  }
+
   function onPlatformChange(){
     const platform = byId("platform").value;
     fillSelect(byId("osName"), OS_OPTIONS[platform]);
@@ -2057,12 +2076,7 @@ If SAN must be carried in the request itself, PowerShell + certreq is usually th
     }
 
     const topConcerns = result.issues.slice(0, 4).map(x => `<li>${x.text}</li>`).join("") || "<li>No major concern recorded.</li>";
-    const snapshot = [
-      `${data.platform} / ${data.osName} ${data.osVersion || "(version not provided)"}`,
-      `${data.server}${data.iisVersion ? ` ${data.iisVersion}` : ""}`,
-      `${data.opensslVersion ? `OpenSSL ${data.opensslVersion}` : "OpenSSL not provided"}`,
-      `${data.cn ? `CN ${data.cn}` : ""}`
-    ].filter(Boolean).map(x => `<li>${x}</li>`).join("");
+    const snapshot = getVisibleEnvironmentSnapshot(data);
 
     box.innerHTML = `
       <div class="readiness-top">
