@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PKI Decoder</title>
+  <meta name="description" content="Cloudflare-ready CSR and certificate decoder" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --line: #e2e8f0;
+      --accent: #0f172a;
+      --ok-bg: #dcfce7;
+      --ok-text: #166534;
+      --bad-bg: #fee2e2;
+      --bad-text: #991b1b;
+      --warn-bg: #fef3c7;
+      --warn-text: #92400e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    .shell { max-width: 1220px; margin: 0 auto; padding: 24px; }
+    header, footer, .card { background: var(--card); border: 1px solid var(--line); border-radius: 24px; }
+    header { padding: 18px 22px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    nav { display:flex; gap:18px; color: var(--muted); font-size: 14px; }
+    nav a { color: inherit; text-decoration: none; }
+    main { display:grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; margin-top: 24px; }
+    .card { padding: 22px; box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04); }
+    h1,h2,h3 { margin: 0 0 8px; }
+    p { color: var(--muted); line-height: 1.5; }
+    textarea { width: 100%; min-height: 280px; padding: 16px; border-radius: 18px; border: 1px solid var(--line); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; resize: vertical; }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top: 14px; }
+    button, .button, label.button { appearance:none; border:0; border-radius: 18px; padding: 12px 18px; font-weight: 700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
+    .primary { background: var(--accent); color:#fff; }
+    .secondary { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    .muted { color: var(--muted); font-size: 14px; }
+    .error { background: #fff1f2; color:#9f1239; border:1px solid #fecdd3; padding:14px 16px; border-radius:16px; margin-top:16px; }
+    .grid { display:grid; gap:16px; }
+    .grid-2 { display:grid; gap:16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kv { display:grid; gap:8px; grid-template-columns: 220px 1fr; border-bottom:1px solid #f1f5f9; padding:10px 0; }
+    .kv:last-child { border-bottom:0; }
+    .label { font-weight:700; color:#334155; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; font-size: 13px; }
+    .section { border:1px solid var(--line); border-radius: 20px; padding:16px; background:#fff; }
+    .result-card { border:1px solid var(--line); border-radius: 26px; padding:18px; background:#f8fafc; }
+    .badge { padding: 6px 10px; border-radius:999px; font-size:12px; font-weight:800; display:inline-flex; align-items:center; }
+    .pass { background: var(--ok-bg); color: var(--ok-text); }
+    .fail { background: var(--bad-bg); color: var(--bad-text); }
+    .warning { background: var(--warn-bg); color: var(--warn-text); }
+    .validation-row { display:flex; justify-content:space-between; gap:12px; padding:12px; border:1px solid #f1f5f9; border-radius:16px; }
+    .small { font-size: 13px; }
+    .list { margin:0; padding-left:18px; }
+    details { border:1px solid var(--line); border-radius:16px; padding:12px 14px; background:#fff; }
+    summary { cursor:pointer; font-weight:700; }
+    pre { margin:12px 0 0; padding:14px; overflow:auto; border-radius:16px; background:#0f172a; color:#e2e8f0; font-size:12px; }
+    .rightcol { display:grid; gap:24px; align-self:start; }
+    footer { margin: 24px 0; padding: 18px 22px; display:flex; justify-content:space-between; gap:12px; color: var(--muted); font-size: 14px; }
+    @media (max-width: 980px) {
+      main, .grid-2, .kv { grid-template-columns: 1fr; }
+      footer, header { flex-direction:column; align-items:flex-start; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div style="font-weight:800;font-size:18px;">PKI Decoder</div>
+        <div class="muted">Cloudflare-ready browser-side decoder for certificates, CSRs, PKCS#7, CRLs, and CMS objects.</div>
+      </div>
+      <nav>
+        <a href="#">Decoder</a>
+        <a href="#">SSL Checker</a>
+        <a href="#">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="grid">
+        <div class="card">
+          <h1>CSR and Certificate Decoder</h1>
+          <p>Paste PEM or Base64 input, or load PEM and DER files. Decoding happens in the browser, which makes the app easy to host on Cloudflare Pages and keeps sensitive material out of server logs.</p>
+          <textarea id="input" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+          <div class="actions">
+            <button id="decodeBtn" class="primary">Decode</button>
+            <label class="button secondary">Load from File<input id="fileInput" type="file" hidden accept=".pem,.crt,.cer,.csr,.p7b,.p7c,.der,.crl" /></label>
+            <button id="downloadBtn" class="secondary" disabled>Download JSON</button>
+            <button id="themeBtn" class="secondary">Dark Mode</button>
+          </div>
+          <div id="fileMeta" class="muted" style="margin-top:10px;"></div>
+          <div id="errorBox" class="error" style="display:none;"></div>
+        </div>
+
+        <div id="results" class="grid"></div>
+      </section>
+
+      <aside class="rightcol">
+        <div class="card">
+          <h3>Privacy</h3>
+          <p class="small">This Cloudflare-ready edition processes input in-memory in the browser. No decode payload needs to leave the page.</p>
+        </div>
+        <div class="card">
+          <h3>Supported</h3>
+          <ul class="list small">
+            <li>X.509 certificates</li>
+            <li>PKCS#10 CSRs</li>
+            <li>PKCS#7 chains</li>
+            <li>CRLs</li>
+            <li>Best-effort CMS signed-data objects</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Notes</h3>
+          <p class="small">CSR verification and fingerprints are computed locally with WebCrypto. Some CMS edge cases still fall back to a raw view.</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div>© 2026 PKI Decoder</div>
+      <div>Terms · Privacy · Contact</div>
+    </footer>
+  </div>
+
+  <script type="module">
+    import * as asn1js from 'https://esm.sh/asn1js@3.0.5';
+    import {
+      setEngine,
+      CryptoEngine,
+      Certificate,
+      CertificationRequest,
+      CertificateRevocationList,
+      ContentInfo,
+      SignedData,
+      getAlgorithmByOID,
+      getCrypto,
+    } from 'https://esm.sh/pkijs@3.2.5';
+
+    const webcrypto = globalThis.crypto;
+    setEngine('browser', webcrypto, new CryptoEngine({ name: 'browser', crypto: webcrypto, subtle: webcrypto.subtle }));
+
+    const inputEl = document.getElementById('input');
+    const resultsEl = document.getElementById('results');
+    const errorBox = document.getElementById('errorBox');
+    const fileInput = document.getElementById('fileInput');
+    const fileMeta = document.getElementById('fileMeta');
+    const decodeBtn = document.getElementById('decodeBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const themeBtn = document.getElementById('themeBtn');
+
+    let latestDecoded = null;
+
+    const sampleCert = `-----BEGIN CERTIFICATE-----\nMIIBszCCAVmgAwIBAgIUcQ4Ko1+Y0HcXN5xwK6gV3kJjj1owCgYIKoZIzj0EAwIw\nFTETMBEGA1UEAwwKZXhhbXBsZS5vcmcwHhcNMjYwMTAxMDAwMDAwWhcNMjcwMTAx\nMDAwMDAwWjAVMRMwEQYDVQQDDApleGFtcGxlLm9yZzBZMBMGByqGSM49AgEGCCqG\nSM49AwEHA0IABOY7I0XJzJrP6u8CDoQW3mqLqN7TFQ+mT0P0n0U9JYdofCkV5CA3\nKnnm6D9vKsm5wHe1Y1UeM7c7p3Rr4mHhlOijUzBRMB0GA1UdDgQWBBSW9tBUE+8W\nbV7s8Y0ItW6Xc0jP4TAfBgNVHSMEGDAWgBSW9tBUE+8WbV7s8Y0ItW6Xc0jP4TAP\nBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMCA0gAMEUCIB5Xyyc6c+4m3O0k1n9c\n6Sdcj9xk6vV8wK0K1xqM5Jw7AiEA7ZC1v6CM0eX9rNnFv3kqZQsm7Y0v3J5z5x5g\nb6k7d3s=\n-----END CERTIFICATE-----`;
+    inputEl.value = sampleCert;
+
+    function showError(message) {
+      errorBox.style.display = 'block';
+      errorBox.textContent = message;
+    }
+    function clearError() {
+      errorBox.style.display = 'none';
+      errorBox.textContent = '';
+    }
+
+    function pemBlocks(text) {
+      const re = /-----BEGIN ([A-Z0-9 #\-]+)-----([\s\S]*?)-----END \1-----/g;
+      const blocks = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        const label = m[1].trim();
+        const body = m[2].replace(/\s+/g, '');
+        blocks.push({ label, der: base64ToArrayBuffer(body) });
+      }
+      return blocks;
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64.replace(/\s+/g, ''));
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes.buffer;
+    }
+
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (const b of bytes) binary += String.fromCharCode(b);
+      return btoa(binary);
+    }
+
+    function hex(buffer) {
+      return [...new Uint8Array(buffer)].map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    async function digestHex(buffer, alg) {
+      const digest = await crypto.subtle.digest(alg, buffer.slice(0));
+      return hex(digest);
+    }
+
+    function parseAsn1(der) {
+      const ber = asn1js.fromBER(der);
+      if (ber.offset === -1) throw new Error('ASN.1 parse failed.');
+      return ber.result;
+    }
+
+    function oidName(oid) {
+      try {
+        const alg = getAlgorithmByOID(oid);
+        return alg?.name || oid;
+      } catch {
+        return oid;
+      }
+    }
+
+    function nameToRows(name) {
+      const map = {
+        '2.5.4.3': 'CN',
+        '2.5.4.10': 'O',
+        '2.5.4.11': 'OU',
+        '2.5.4.7': 'L',
+        '2.5.4.8': 'ST',
+        '2.5.4.6': 'C',
+        '1.2.840.113549.1.9.1': 'emailAddress'
+      };
+      return (name.typesAndValues || []).map(tv => ({ field: map[tv.type] || tv.type, oid: tv.type, value: tv.value.valueBlock.value || tv.value.valueBlock.valueDec || String(tv.value.valueBlock.valueHex || '') }));
+    }
+
+    function formatName(name) {
+      return nameToRows(name).map(x => `${x.field}=${x.value}`).join(', ');
+    }
+
+    function extractPublicKeyInfo(spki) {
+      const algorithm = spki.algorithm.algorithmId;
+      const namedCurve = spki.algorithm.algorithmParams?.valueBlock?.toString?.() || spki.algorithm.algorithmParams?.valueBlock?.value || null;
+      let keySize = null;
+      try {
+        if (algorithm === '1.2.840.113549.1.1.1') {
+          const rsaAsn1 = asn1js.fromBER(spki.subjectPublicKey.valueBlock.valueHexView.slice().buffer);
+          const modulus = rsaAsn1.result.valueBlock.value[0];
+          keySize = modulus.valueBlock.valueHex.byteLength * 8;
+        } else if (algorithm === '1.2.840.10045.2.1') {
+          const bits = spki.subjectPublicKey.valueBlock.valueHex.byteLength * 8;
+          keySize = bits;
+        } else if (algorithm === '1.3.101.112') {
+          keySize = 256;
+        } else if (algorithm === '1.3.101.113') {
+          keySize = 456;
+        }
+      } catch {}
+      return {
+        algorithm_oid: algorithm,
+        algorithm: oidName(algorithm),
+        key_size: keySize,
+        curve: namedCurve,
+      };
+    }
+
+    function extName(oid) {
+      const map = {
+        '2.5.29.17': 'Subject Alternative Name',
+        '2.5.29.15': 'Key Usage',
+        '2.5.29.37': 'Extended Key Usage',
+        '2.5.29.19': 'Basic Constraints',
+        '2.5.29.35': 'Authority Key Identifier',
+        '2.5.29.14': 'Subject Key Identifier',
+        '2.5.29.31': 'CRL Distribution Points',
+        '1.3.6.1.5.5.7.1.1': 'Authority Information Access',
+        '2.5.29.32': 'Certificate Policies',
+      };
+      return map[oid] || oid;
+    }
+
+    function simpleExtensionValue(ext) {
+      try {
+        if (ext.parsedValue) {
+          if (Array.isArray(ext.parsedValue.altNames)) {
+            return ext.parsedValue.altNames.map(x => ({ type: x.type, value: x.value }));
+          }
+          return JSON.parse(JSON.stringify(ext.parsedValue));
+        }
+      } catch {}
+      return { raw_hex: hex(ext.extnValue.valueBlock.valueHex) };
+    }
+
+    function validityChecks(notBefore, notAfter) {
+      const now = new Date();
+      if (now < notBefore) return { expired: false, notYetValid: true };
+      if (now > notAfter) return { expired: true, notYetValid: false };
+      return { expired: false, notYetValid: false };
+    }
+
+    function weakSig(sig) {
+      const v = String(sig).toLowerCase();
+      return v.includes('sha-1') || v.includes('sha1') || v.includes('md5');
+    }
+
+    function weakKeyHeuristic(spki) {
+      try {
+        const algorithm = spki.algorithm.algorithmId;
+        if (algorithm !== '1.2.840.113549.1.1.1') return { status: 'warning', detail: 'Weak-key screening in this build is RSA-focused only.' };
+        const rsaAsn1 = asn1js.fromBER(spki.subjectPublicKey.valueBlock.valueHexView.slice().buffer);
+        const modulus = rsaAsn1.result.valueBlock.value[0].valueBlock.valueHex;
+        const prefix = hex(modulus).slice(0, 4).toLowerCase();
+        const bad = new Set(['0002','0003','0005','0006','0007','0008','0009','000b','000d','000f']);
+        return bad.has(prefix)
+          ? { status: 'warning', detail: 'RSA modulus matches a weak-key prefix heuristic. Confirm independently.' }
+          : { status: 'pass', detail: 'No match against a simple Debian weak-key prefix heuristic.' };
+      } catch {
+        return { status: 'warning', detail: 'Weak-key screening could not be completed.' };
+      }
+    }
+
+    async function decodeCertificate(der) {
+      const cert = new Certificate({ schema: parseAsn1(der) });
+      const pub = extractPublicKeyInfo(cert.subjectPublicKeyInfo);
+      const sig = oidName(cert.signatureAlgorithm.algorithmId);
+      const state = validityChecks(cert.notBefore.value, cert.notAfter.value);
+      const validations = [
+        { label: 'Validity window', status: state.expired || state.notYetValid ? 'fail' : 'pass', detail: state.expired ? 'Certificate has expired.' : state.notYetValid ? 'Certificate is not yet valid.' : 'Certificate is currently valid.' },
+        { label: pub.algorithm.toLowerCase().includes('rsa') ? 'RSA key size' : 'Key size', status: !pub.key_size ? 'warning' : (pub.algorithm.toLowerCase().includes('rsa') ? pub.key_size >= 2048 : pub.key_size >= 256) ? 'pass' : 'fail', detail: pub.key_size ? `${pub.algorithm} key size is ${pub.key_size} bits.` : 'Key size could not be derived.' },
+        { label: 'Signature algorithm', status: weakSig(sig) ? 'fail' : 'pass', detail: weakSig(sig) ? `Weak signature algorithm detected: ${sig}.` : `Signature algorithm is ${sig}.` },
+      ];
+      const weak = weakKeyHeuristic(cert.subjectPublicKeyInfo);
+      validations.push({ label: 'Known weak key screen', status: weak.status, detail: weak.detail });
+      return {
+        type: 'certificate',
+        subject: nameToRows(cert.subject),
+        issuer: nameToRows(cert.issuer),
+        subject_display: formatName(cert.subject),
+        issuer_display: formatName(cert.issuer),
+        serial_number: hex(cert.serialNumber.valueBlock.valueHex),
+        validity: {
+          not_before: cert.notBefore.value.toISOString(),
+          not_after: cert.notAfter.value.toISOString(),
+          expired: state.expired,
+          not_yet_valid: state.notYetValid,
+        },
+        public_key: pub,
+        signature_algorithm: sig,
+        fingerprints: {
+          sha256: await digestHex(der, 'SHA-256'),
+          sha1: await digestHex(der, 'SHA-1'),
+        },
+        extensions: (cert.extensions || []).map(ext => ({ oid: ext.extnID, name: extName(ext.extnID), critical: ext.critical, value: simpleExtensionValue(ext) })),
+        validations,
+        raw_asn1_type: 'Certificate',
+      };
+    }
+
+    async function decodeCSR(der) {
+      const csr = new CertificationRequest({ schema: parseAsn1(der) });
+      const pub = extractPublicKeyInfo(csr.subjectPublicKeyInfo);
+      const sig = oidName(csr.signatureAlgorithm.algorithmId);
+      let signatureValid = false;
+      try { signatureValid = await csr.verify(); } catch {}
+      const empty = nameToRows(csr.subject).filter(x => !String(x.value || '').trim()).map(x => x.field);
+      const validations = [
+        { label: 'CSR self-signature', status: signatureValid ? 'pass' : 'fail', detail: signatureValid ? 'CSR self-signature is valid.' : 'CSR self-signature is invalid.' },
+        { label: pub.algorithm.toLowerCase().includes('rsa') ? 'RSA key size' : 'Key size', status: !pub.key_size ? 'warning' : (pub.algorithm.toLowerCase().includes('rsa') ? pub.key_size >= 2048 : pub.key_size >= 256) ? 'pass' : 'fail', detail: pub.key_size ? `${pub.algorithm} key size is ${pub.key_size} bits.` : 'Key size could not be derived.' },
+        { label: 'Subject completeness', status: empty.length ? 'fail' : 'pass', detail: empty.length ? `Empty subject values found in: ${empty.join(', ')}.` : 'No empty subject values found.' },
+      ];
+      const weak = weakKeyHeuristic(csr.subjectPublicKeyInfo);
+      validations.push({ label: 'Known weak key screen', status: weak.status, detail: weak.detail });
+      let requestedExtensions = [];
+      for (const attr of (csr.attributes || [])) {
+        if (attr.type === '1.2.840.113549.1.9.14' && attr.values?.[0]) {
+          const exts = attr.values[0].extensions || [];
+          requestedExtensions = exts.map(ext => ({ oid: ext.extnID, name: extName(ext.extnID), critical: ext.critical, value: simpleExtensionValue(ext) }));
+        }
+      }
+      return {
+        type: 'csr',
+        subject: nameToRows(csr.subject),
+        subject_display: formatName(csr.subject),
+        public_key: pub,
+        signature_algorithm: sig,
+        requested_extensions: requestedExtensions,
+        signature_valid: signatureValid,
+        validations,
+        raw_asn1_type: 'CertificationRequest',
+      };
+    }
+
+    async function decodeCRL(der) {
+      const crl = new CertificateRevocationList({ schema: parseAsn1(der) });
+      return {
+        type: 'crl',
+        issuer: nameToRows(crl.issuer),
+        this_update: crl.thisUpdate.value.toISOString(),
+        next_update: crl.nextUpdate?.value?.toISOString?.() || null,
+        signature_algorithm: oidName(crl.signature.algorithmId),
+        revoked_certificates: (crl.revokedCertificates || []).map(entry => ({
+          serial_number: hex(entry.userCertificate.valueBlock.valueHex),
+          revocation_date: entry.revocationDate.value.toISOString(),
+          reason: entry.crlEntryExtensions?.extensions?.find(x => x.extnID === '2.5.29.21')?.parsedValue?.valueBlock?.toString?.() || null,
+        })),
+        raw_asn1_type: 'CertificateRevocationList',
+      };
+    }
+
+    async function decodePKCS7orCMS(der) {
+      const contentInfo = new ContentInfo({ schema: parseAsn1(der) });
+      const type = contentInfo.contentType;
+      const out = { type: 'cms', content_type: type, certificates: [] };
+      if (type === '1.2.840.113549.1.7.2') {
+        const signedData = new SignedData({ schema: contentInfo.content });
+        const certs = signedData.certificates || [];
+        for (const cert of certs) {
+          try {
+            const certDer = cert.toSchema().toBER(false);
+            out.certificates.push(await decodeCertificate(certDer));
+          } catch {}
+        }
+        out.type = 'pkcs7';
+        classifyChain(out.certificates);
+      }
+      return out;
+    }
+
+    function classifyChain(certs) {
+      const issuers = new Set(certs.map(c => c.issuer_display));
+      for (const cert of certs) {
+        if (cert.subject_display === cert.issuer_display) cert.chain_role = 'root';
+        else if (!issuers.has(cert.subject_display)) cert.chain_role = 'end-entity';
+        else cert.chain_role = 'intermediate';
+      }
+    }
+
+    async function decodeOne(der) {
+      const attempts = [decodeCertificate, decodeCSR, decodeCRL, decodePKCS7orCMS];
+      const errors = [];
+      for (const fn of attempts) {
+        try { return await fn(der); } catch (e) { errors.push(`${fn.name}: ${e.message}`); }
+      }
+      throw new Error(`Unable to decode object. ${errors.join(' | ')}`);
+    }
+
+    async function loadCurrentInputObjects() {
+      const text = inputEl.value.trim();
+      const blocks = pemBlocks(text);
+      if (blocks.length) return blocks;
+      try {
+        return [{ label: 'BASE64_OR_DER', der: base64ToArrayBuffer(text) }];
+      } catch {
+        throw new Error('Unable to decode — the input does not appear to be a valid PEM/Base64/DER certificate, CSR, PKCS#7, CRL, or CMS object.');
+      }
+    }
+
+    function badge(status) {
+      return `<span class="badge ${status}">${status.toUpperCase()}</span>`;
+    }
+
+    function sectionKV(label, value, mono = false) {
+      return `<div class="kv"><div class="label">${escapeHtml(label)}</div><div class="${mono ? 'mono' : ''}">${escapeHtml(value ?? '—')}</div></div>`;
+    }
+
+    function nameSection(title, rows = []) {
+      return `<div class="section"><h3>${escapeHtml(title)}</h3>${rows.length ? rows.map(row => `<div class="kv"><div class="label">${escapeHtml(row.field)}</div><div>${escapeHtml(String(row.value ?? ''))}</div></div>`).join('') : '<div class="small muted">No values found.</div>'}</div>`;
+    }
+
+    function validationSection(rows = []) {
+      return `<div class="section"><h3>Validation</h3><div class="grid">${rows.map(item => `<div class="validation-row"><div><div style="font-weight:700;">${escapeHtml(item.label)}</div><div class="small muted">${escapeHtml(item.detail)}</div></div>${badge(item.status)}</div>`).join('')}</div></div>`;
+    }
+
+    function extensionSection(exts = []) {
+      return `<div class="section"><h3>Extensions</h3><div class="grid">${exts.map((ext, i) => `<details ${i < 2 ? 'open' : ''}><summary>${escapeHtml(ext.name)} <span class="small muted">(${escapeHtml(ext.oid)})</span></summary><pre>${escapeHtml(JSON.stringify(ext.value, null, 2))}</pre></details>`).join('') || '<div class="small muted">No extensions found.</div>'}</div></div>`;
+    }
+
+    function renderObject(obj) {
+      if (obj.type === 'certificate') {
+        return `<article class="result-card grid">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+            <div><h2>X.509 Certificate</h2><div class="muted small">${escapeHtml(obj.subject_display || '')}</div></div>
+            ${obj.chain_role ? `<span class="badge warning">${escapeHtml(obj.chain_role.toUpperCase())}</span>` : ''}
+          </div>
+          ${validationSection(obj.validations)}
+          <div class="grid-2">${nameSection('Subject', obj.subject)}${nameSection('Issuer', obj.issuer)}</div>
+          <div class="section">
+            <h3>Certificate Details</h3>
+            ${sectionKV('Serial Number', obj.serial_number, true)}
+            ${sectionKV('Not Before', obj.validity.not_before, true)}
+            ${sectionKV('Not After', obj.validity.not_after, true)}
+            ${sectionKV('Public Key Algorithm', obj.public_key.algorithm)}
+            ${sectionKV('Key Size', obj.public_key.key_size ? `${obj.public_key.key_size} bits` : '—')}
+            ${sectionKV('Curve', obj.public_key.curve)}
+            ${sectionKV('Signature Algorithm', obj.signature_algorithm)}
+            ${sectionKV('SHA-256 Fingerprint', obj.fingerprints.sha256, true)}
+            ${sectionKV('SHA-1 Fingerprint', obj.fingerprints.sha1, true)}
+          </div>
+          ${extensionSection(obj.extensions)}
+        </article>`;
+      }
+      if (obj.type === 'csr') {
+        return `<article class="result-card grid">
+          <div><h2>Certificate Signing Request</h2><div class="muted small">${escapeHtml(obj.subject_display || '')}</div></div>
+          ${validationSection(obj.validations)}
+          ${nameSection('Subject', obj.subject)}
+          <div class="section">
+            <h3>CSR Details</h3>
+            ${sectionKV('Public Key Algorithm', obj.public_key.algorithm)}
+            ${sectionKV('Key Size', obj.public_key.key_size ? `${obj.public_key.key_size} bits` : '—')}
+            ${sectionKV('Curve', obj.public_key.curve)}
+            ${sectionKV('Signature Algorithm', obj.signature_algorithm)}
+            ${sectionKV('Signature Valid', String(obj.signature_valid))}
+          </div>
+          ${extensionSection(obj.requested_extensions)}
+        </article>`;
+      }
+      if (obj.type === 'crl') {
+        return `<article class="result-card grid">
+          <div><h2>Certificate Revocation List</h2></div>
+          ${nameSection('Issuer', obj.issuer)}
+          <div class="section">
+            <h3>CRL Details</h3>
+            ${sectionKV('This Update', obj.this_update, true)}
+            ${sectionKV('Next Update', obj.next_update, true)}
+            ${sectionKV('Signature Algorithm', obj.signature_algorithm)}
+          </div>
+          <div class="section"><h3>Revoked Certificates</h3><pre>${escapeHtml(JSON.stringify(obj.revoked_certificates, null, 2))}</pre></div>
+        </article>`;
+      }
+      if (obj.type === 'pkcs7' || obj.type === 'cms') {
+        return `<article class="result-card grid">
+          <div><h2>${escapeHtml(obj.type.toUpperCase())} Object</h2><div class="muted small">Content type: ${escapeHtml(obj.content_type || '')}</div></div>
+          ${obj.certificates?.length ? obj.certificates.map(renderObject).join('') : `<div class="section"><pre>${escapeHtml(JSON.stringify(obj, null, 2))}</pre></div>`}
+        </article>`;
+      }
+      return `<article class="result-card"><pre>${escapeHtml(JSON.stringify(obj, null, 2))}</pre></article>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    decodeBtn.addEventListener('click', async () => {
+      clearError();
+      resultsEl.innerHTML = '';
+      downloadBtn.disabled = true;
+      latestDecoded = null;
+      try {
+        decodeBtn.disabled = true;
+        decodeBtn.textContent = 'Decoding…';
+        const objects = await loadCurrentInputObjects();
+        const decoded = [];
+        const errors = [];
+        for (const block of objects) {
+          try {
+            const item = await decodeOne(block.der);
+            item.input_label = block.label;
+            decoded.push(item);
+          } catch (e) {
+            errors.push(`${block.label}: ${e.message}`);
+          }
+        }
+        if (!decoded.length) throw new Error(errors[0] || 'No supported PKI objects found.');
+        latestDecoded = { objects: decoded, errors };
+        resultsEl.innerHTML = `${errors.length ? `<div class="error">${escapeHtml(errors.join(' | '))}</div>` : ''}${decoded.map(renderObject).join('')}`;
+        downloadBtn.disabled = false;
+      } catch (e) {
+        showError(e.message || 'Decode failed.');
+      } finally {
+        decodeBtn.disabled = false;
+        decodeBtn.textContent = 'Decode';
+      }
+    });
+
+    fileInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      fileMeta.textContent = `Loaded file: ${file.name}`;
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      if (text.includes('-----BEGIN ')) {
+        inputEl.value = text;
+      } else {
+        inputEl.value = arrayBufferToBase64(bytes.buffer);
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!latestDecoded) return;
+      const blob = new Blob([JSON.stringify(latestDecoded, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'decoded.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    themeBtn.addEventListener('click', () => {
+      const dark = document.body.dataset.theme !== 'dark';
+      document.body.dataset.theme = dark ? 'dark' : 'light';
+      if (dark) {
+        document.documentElement.style.setProperty('--bg', '#020617');
+        document.documentElement.style.setProperty('--card', '#0f172a');
+        document.documentElement.style.setProperty('--text', '#e2e8f0');
+        document.documentElement.style.setProperty('--muted', '#94a3b8');
+        document.documentElement.style.setProperty('--line', '#1e293b');
+        document.documentElement.style.setProperty('--accent', '#e2e8f0');
+      } else {
+        document.documentElement.style.setProperty('--bg', '#f8fafc');
+        document.documentElement.style.setProperty('--card', '#ffffff');
+        document.documentElement.style.setProperty('--text', '#0f172a');
+        document.documentElement.style.setProperty('--muted', '#475569');
+        document.documentElement.style.setProperty('--line', '#e2e8f0');
+        document.documentElement.style.setProperty('--accent', '#0f172a');
+      }
+    });
+  </script>
+</body>
+</html>
