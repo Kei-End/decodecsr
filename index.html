@@ -245,8 +245,12 @@
         <button class="tab-btn" data-tab="tab-kb">Knowledge Bank</button>
       </div>
 
-      <div id="tab-env" class="tab-panel active">
+            <div id="tab-env" class="tab-panel active">
         <h2 class="section-title">Environment and server stack</h2>
+        <div class="panel info" style="margin-top:0; margin-bottom:14px;">
+          <strong>Why this section matters</strong>
+          Choose the actual operating system and live server stack first. The form only reveals the fields that matter to that path so the generated output stays shorter, cleaner, and less likely to push the wrong script to the operator.
+        </div>
         <div class="grid">
           <div class="field">
             <label for="platform">Operating system family</label>
@@ -259,6 +263,7 @@
           <div class="field">
             <label for="osVersion">OS version</label>
             <input id="osVersion" placeholder="Examples: 2016, 2019, 2022, 7, 8, 9, 22.04">
+            <div class="hint">Used for baseline checks and old-platform warnings.</div>
           </div>
           <div class="field">
             <label for="server">Web server / stack</label>
@@ -267,10 +272,12 @@
           <div class="field" id="field_iisVersion" hidden>
             <label for="iisVersion">IIS version</label>
             <input id="iisVersion" placeholder="Examples: 8.0, 8.5, 10.0">
+            <div class="hint">Used to warn if the IIS stack looks too old for smooth ECC workflows.</div>
           </div>
           <div class="field" id="field_iisMethod" hidden>
             <label for="iisMethod">Windows CSR method</label>
             <select id="iisMethod"><option value="powershell">PowerShell + certreq</option><option value="gui">IIS GUI guidance</option><option value="both">Both</option></select>
+            <div class="hint">Shown only for Windows IIS so the output can stay aligned to the actual operating path.</div>
           </div>
           <div class="field" id="field_nginxVersion" hidden>
             <label for="nginxVersion">Nginx version</label>
@@ -286,7 +293,7 @@
           </div>
           <div class="field" id="field_phpVersion" hidden>
             <label for="phpVersion">PHP version</label>
-            <input id="phpVersion" placeholder="Example: 8.1.0">
+            <input id="phpVersion" placeholder="Example: 7.4.33">
           </div>
           <div class="field" id="field_opensslVersion">
             <label for="opensslVersion">OpenSSL version</label>
@@ -296,7 +303,6 @@
             <label for="opensshVersion">OpenSSH version</label>
             <input id="opensshVersion" placeholder="Optional">
           </div>
-          <div class="full inline-help">Only server-specific fields appear when relevant. IIS options stay hidden unless IIS is selected.</div>
         </div>
       </div>
 
